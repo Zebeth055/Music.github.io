@@ -1,0 +1,732 @@
+:root {
+    --bg-color: #000000;
+    --surface-color: #121212;
+    --surface-light: #282828;
+    --nintendo-red: #e60012;
+    --text-main: #ffffff;
+    --text-muted: #a0a0a0;
+    --font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    background-color: var(--bg-color);
+    color: var(--text-main);
+    font-family: var(--font-family);
+    overflow-x: hidden;
+    padding-bottom: 140px;
+}
+
+.material-symbols-rounded {
+    font-size: 24px;
+}
+
+header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 16px;
+    position: sticky;
+    top: 0;
+    background-color: var(--bg-color);
+    z-index: 10;
+}
+
+.logo-btn {
+    background-color: var(--nintendo-red);
+    color: white;
+    padding: 8px 16px;
+    border-radius: 20px;
+    font-weight: bold;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 14px;
+}
+
+.profile-pic img {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+}
+
+main {
+    padding: 0 16px;
+}
+
+/* --- Animaciones Nintendo (Bouncy & Pop) --- */
+.view {
+    display: none;
+}
+.view.active {
+    display: block;
+    animation: wiiPopIn 0.35s cubic-bezier(0.175, 0.885, 0.32, 1.275) both;
+}
+
+@keyframes wiiPopIn {
+    0% {
+        transform: scale(0.95) translateY(10px);
+        opacity: 0;
+    }
+    100% {
+        transform: scale(1) translateY(0);
+        opacity: 1;
+    }
+}
+
+.nintendo-bouncy {
+    transition:
+        transform 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275),
+        box-shadow 0.25s ease,
+        opacity 0.2s;
+    cursor: pointer;
+    will-change: transform; /* OPTIMIZACIÓN: Aceleración por GPU */
+}
+.nintendo-bouncy:hover {
+    transform: scale(1.05);
+}
+.nintendo-bouncy:active {
+    transform: scale(0.95);
+    opacity: 0.8;
+}
+
+.nintendo-bouncy-modal {
+    animation: wiiPopIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) both;
+}
+
+/* --- Secciones y Títulos --- */
+.section-title {
+    font-size: 20px;
+    margin: 24px 0 16px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.scroll-buttons {
+    display: flex;
+    gap: 12px;
+}
+.scroll-arrow {
+    color: var(--text-muted);
+    cursor: pointer;
+    transition:
+        color 0.2s,
+        background-color 0.2s;
+    padding: 4px;
+    border-radius: 50%;
+}
+.scroll-arrow:hover {
+    color: var(--text-main);
+    background-color: var(--surface-light);
+}
+
+.horizontal-scroll {
+    display: flex;
+    gap: 16px;
+    overflow-x: auto;
+    overflow-y: hidden; /* ARREGLO: Elimina el scroll vertical fantasma */
+    padding: 10px 4px; /* ARREGLO: Da espacio para que el scale(1.05) no se corte */
+    scrollbar-width: none;
+    scroll-behavior: smooth;
+}
+.horizontal-scroll::-webkit-scrollbar {
+    display: none;
+}
+
+/* --- Cards Estrictas (140x140) --- */
+.card {
+    width: 140px;
+    flex: 0 0 140px;
+    cursor: pointer;
+    position: relative;
+}
+.card.large {
+    width: 240px;
+    flex: 0 0 240px;
+}
+
+.card-img-placeholder {
+    width: 140px;
+    height: 140px;
+    background-color: var(--surface-light);
+    border-radius: 8px;
+    margin-bottom: 8px;
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+    transition: box-shadow 0.2s;
+}
+.card:hover .card-img-placeholder {
+    box-shadow: 0 8px 20px rgba(230, 0, 18, 0.3);
+}
+.card.large .card-img-placeholder {
+    width: 240px;
+    height: 240px;
+}
+.card-img-placeholder.nintendo-red {
+    background-color: var(--nintendo-red);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-weight: bold;
+    text-align: center;
+}
+.card-title {
+    font-size: 14px;
+    font-weight: 500;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* --- Cover Overlay (Para editar playlists) --- */
+.cover-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 140px;
+    height: 140px;
+    border-radius: 8px;
+    background: rgba(0, 0, 0, 0.7);
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 13px;
+    font-weight: bold;
+    opacity: 0;
+    transition: opacity 0.2s ease;
+}
+.card:hover .cover-overlay {
+    opacity: 1;
+}
+
+/* --- Búsqueda y Navegación --- */
+.search-bar {
+    background-color: var(--surface-light);
+    padding: 12px 16px;
+    border-radius: 24px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 24px;
+}
+.search-bar input {
+    background: transparent;
+    border: none;
+    color: white;
+    width: 100%;
+    font-size: 16px;
+    outline: none;
+}
+
+#bottom-nav {
+    position: fixed;
+    bottom: 0;
+    width: 100%;
+    background-color: rgba(0, 0, 0, 0.9);
+    backdrop-filter: blur(10px);
+    display: flex;
+    justify-content: space-around;
+    padding: 12px 0 24px;
+    border-top: 1px solid var(--surface-light);
+    z-index: 100;
+}
+.nav-item {
+    background: none;
+    border: none;
+    color: var(--text-muted);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    font-size: 12px;
+}
+.nav-item.active {
+    color: var(--text-main);
+}
+
+/* --- Reproductores --- */
+#mini-player {
+    position: fixed;
+    bottom: 80px;
+    left: 8px;
+    right: 8px;
+    background-color: var(--surface-light);
+    border-radius: 12px;
+    padding: 8px 12px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    z-index: 99;
+}
+#mini-player.hidden {
+    display: none;
+}
+.mini-info {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-grow: 1;
+    overflow: hidden;
+}
+.mini-art {
+    width: 40px;
+    height: 40px;
+    background-color: var(--surface-color);
+    border-radius: 4px;
+    background-size: cover;
+    background-position: center;
+    flex-shrink: 0;
+}
+.mini-text {
+    overflow: hidden;
+}
+.song-title {
+    font-size: 14px;
+    font-weight: 500;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.song-game {
+    font-size: 12px;
+    color: var(--text-muted);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.mini-controls {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+.mini-controls button {
+    background: none;
+    border: none;
+    color: white;
+    padding: 8px;
+}
+
+#full-player {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100vh;
+    background: linear-gradient(to bottom, #2a2a35, #000000);
+    z-index: 200;
+    display: flex;
+    flex-direction: column;
+    padding: 16px 24px 40px 24px;
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+#full-player.hidden {
+    transform: translateY(100%);
+}
+
+.full-player-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 14px;
+    font-weight: bold;
+    margin-bottom: 24px;
+}
+.full-player-header button {
+    background: none;
+    border: none;
+    color: white;
+    padding: 8px;
+}
+.full-player-header button .material-symbols-rounded {
+    font-size: 32px;
+}
+
+.album-art-container {
+    flex: 1;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-bottom: 30px;
+}
+
+.album-art-large {
+    width: 100%;
+    max-width: 368px;
+    aspect-ratio: 1 / 1;
+    border-radius: 12px;
+    background-color: rgba(255, 255, 255, 0.05);
+    background-size: contain;
+    background-position: center;
+    background-repeat: no-repeat;
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.5);
+}
+
+.player-info {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 24px;
+}
+.player-info h2 {
+    font-size: 24px;
+    margin-bottom: 4px;
+}
+.player-info p {
+    color: var(--text-muted);
+    font-size: 16px;
+}
+.composer-info {
+    font-size: 12px;
+    margin-top: 4px;
+    color: #888 !important;
+}
+
+/* --- Progress Bar YouTube Style --- */
+.progress-container {
+    margin-bottom: 15px;
+}
+input[type="range"].progress-bar-yt {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 100%;
+    height: 5px;
+    border-radius: 100px;
+    outline: none;
+    background: #000000;
+}
+input[type="range"].progress-bar-yt::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background: var(--nintendo-red);
+    cursor: pointer;
+    transition: transform 0.1s ease;
+}
+input[type="range"].progress-bar-yt::-webkit-slider-thumb:hover {
+    transform: scale(1.4);
+}
+
+.time-info {
+    display: flex;
+    justify-content: space-between;
+    font-size: 12px;
+    color: var(--text-muted);
+    margin-top: 8px;
+}
+
+.main-controls {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 16px;
+}
+.main-controls button {
+    background: none;
+    border: none;
+    color: white;
+    transition: color 0.2s;
+}
+.main-controls button.active-control {
+    color: var(--nintendo-red);
+}
+.main-controls .play-btn-large {
+    width: 64px;
+    height: 64px;
+    background-color: var(--text-main);
+    color: var(--bg-color);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.main-controls .play-btn-large .material-symbols-rounded {
+    font-size: 40px;
+}
+
+.volume-container {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 24px;
+    color: var(--text-muted);
+}
+
+.bottom-player-actions {
+    display: flex;
+    justify-content: space-between;
+}
+.bottom-player-actions button {
+    background: none;
+    border: none;
+    color: var(--text-muted);
+}
+
+/* --- Listas y Botones --- */
+.upload-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background-color: var(--surface-light);
+    padding: 12px 20px;
+    border-radius: 24px;
+    color: white;
+    font-size: 14px;
+    border: none;
+}
+.upload-btn input {
+    display: none;
+}
+.helper-text {
+    color: var(--text-muted);
+    font-size: 14px;
+}
+.track-list {
+    list-style: none;
+    margin-top: 24px;
+}
+.track-item {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 12px;
+    border-bottom: 1px solid var(--surface-light);
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+.track-item:hover {
+    background-color: rgba(255, 255, 255, 0.05);
+}
+
+/* --- Modales --- */
+.modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.8);
+    backdrop-filter: blur(5px);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+}
+.modal.hidden {
+    display: none;
+}
+.modal-content {
+    background: var(--surface-color);
+    padding: 24px;
+    border-radius: 12px;
+    width: 90%;
+    max-width: 400px;
+    text-align: center;
+    border: 1px solid var(--surface-light);
+}
+
+/* --- Game View --- */
+.game-header-top {
+    margin-bottom: 16px;
+}
+.game-header-top button {
+    background: none;
+    border: none;
+    color: white;
+}
+.game-info-container {
+    display: flex;
+    gap: 16px;
+    margin-bottom: 20px;
+    align-items: center;
+}
+.game-cover-large {
+    width: 120px;
+    height: 120px;
+    background-color: var(--surface-light);
+    border-radius: 8px;
+    background-size: cover;
+    background-position: center;
+    flex-shrink: 0;
+}
+.game-details h2 {
+    font-size: 22px;
+}
+.game-actions {
+    display: flex;
+    gap: 12px;
+    margin-bottom: 24px;
+}
+.action-btn {
+    flex: 1;
+    padding: 12px;
+    border-radius: 30px;
+    border: none;
+    font-weight: bold;
+    font-size: 14px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 8px;
+}
+.action-btn.primary {
+    background-color: var(--nintendo-red);
+    color: white;
+}
+.action-btn.secondary {
+    background-color: var(--surface-light);
+    color: var(--text-main);
+}
+.game-stats {
+    font-size: 12px;
+    color: var(--text-muted);
+    margin-bottom: 16px;
+}
+
+/* =========================================
+   INTERFAZ DE ESCRITORIO (PC)
+   ========================================= */
+@media (min-width: 768px) {
+    /* 1. Transformamos el body en una cuadrícula (Grid) */
+    body {
+        display: grid;
+        grid-template-columns: 240px 1fr;
+        grid-template-rows: 70px 1fr 90px; /* Header, Contenido, Reproductor */
+        height: 100vh;
+        padding-bottom: 0; /* Quitamos el padding móvil */
+        overflow: hidden; /* Evitamos el scroll de toda la ventana */
+    }
+
+    /* 2. El Header pasa a la columna derecha, arriba */
+    header {
+        grid-column: 2;
+        grid-row: 1;
+        position: relative;
+        padding: 0 32px;
+    }
+
+    /* 3. La barra de navegación se vuelve una barra lateral izquierda */
+    #bottom-nav {
+        grid-column: 1;
+        grid-row: 1 / 3; /* Ocupa desde arriba hasta el reproductor */
+        position: relative;
+        flex-direction: column;
+        justify-content: flex-start;
+        align-items: flex-start;
+        padding: 24px 16px;
+        height: 100%;
+        border-top: none;
+        border-right: 1px solid var(--surface-light);
+        background-color: var(--surface-color);
+        gap: 8px;
+    }
+
+    /* Ajustamos los botones de la barra lateral */
+    .nav-item {
+        flex-direction: row;
+        width: 100%;
+        padding: 16px;
+        border-radius: 8px;
+        justify-content: flex-start;
+        gap: 16px;
+        font-size: 16px;
+    }
+    .nav-item span:last-child {
+        font-size: 16px;
+    }
+
+    /* 4. El área principal de contenido */
+    #app-content {
+        grid-column: 2;
+        grid-row: 2;
+        overflow-y: auto;
+        padding: 0 32px 32px 32px;
+        height: 100%;
+    }
+
+    /* Ajuste para que las tarjetas no sean tan enormes en PC */
+    .horizontal-scroll {
+        grid-auto-columns: minmax(160px, 1fr);
+    }
+    .card-img-placeholder {
+        height: 160px;
+    }
+
+    /* 5. El Reproductor Inferior (Mini Player) se vuelve la barra principal */
+    #mini-player {
+        grid-column: 1 / 3; /* Ocupa todo el ancho inferior */
+        grid-row: 3;
+        position: relative;
+        bottom: 0;
+        width: 100%;
+        margin: 0;
+        border-radius: 0;
+        height: 100%;
+        padding: 0 32px;
+        background-color: var(--surface-light);
+        border-top: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    /* Convertimos el mini-player en una barra completa cuando está visible */
+    #mini-player:not(.hidden) {
+        display: grid;
+        grid-template-columns: 300px 1fr 300px;
+        align-items: center;
+        gap: 24px;
+    }
+
+    .mini-info {
+        cursor: pointer;
+    }
+
+    .mini-controls {
+        justify-content: center;
+        gap: 24px;
+    }
+
+    /* 6. Comportamiento del Full Player en PC (Ventana flotante) */
+    #full-player {
+        width: 400px;
+        height: calc(100vh - 110px);
+        top: 10px;
+        left: auto;
+        right: 10px;
+        bottom: auto;
+        border-radius: 16px;
+        box-shadow: -5px 0 30px rgba(0, 0, 0, 0.8);
+        border: 1px solid var(--surface-light);
+    }
+    #full-player.hidden {
+        transform: translateY(120%);
+    }
+}
+
+/* --- Visualizador de Audio --- */
+#visualizer {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 0;
+    pointer-events: none; /* Crucial: permite hacer clic a través del canvas */
+    opacity: 0.1; /* Ajusta la transparencia para que no lastime la vista */
+}
+
+
+/* Aseguramos que los controles y portadas estén por encima del visualizador */
+#full-player > *:not(#visualizer) {
+    position: relative;
+    z-index: 1;
+}
