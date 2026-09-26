@@ -1,310 +1,503 @@
 <!DOCTYPE html>
-<html lang="es">
+<html lang="es" data-theme="dark">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Nintendo Music Player</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+    <meta name="theme-color" content="#000000">
+    <meta name="description" content="Reproductor de música local con biblioteca de juegos, playlists y visualizador.">
+    <title>Nintendo Music</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@24,400,1,0&display=block">
     <link rel="stylesheet" href="styles.css">
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@24,400,1,0" />
     <script src="https://www.youtube.com/iframe_api"></script>
 </head>
 <body>
-    <input type="file" id="playlist-cover-input" accept="image/*" style="display: none;">
+    <input type="file" id="playlist-cover-input" accept="image/*" class="sr-only" tabindex="-1" aria-hidden="true">
 
-    <div id="custom-modal" class="modal hidden">
+    <!-- ================= MODALES ================= -->
+    <div id="custom-modal" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="modal-title" aria-describedby="modal-text">
         <div class="modal-content nintendo-bouncy-modal">
             <h3 id="modal-title">Aviso</h3>
             <p id="modal-text">Mensaje</p>
-            <button id="modal-close" class="action-btn primary" style="width: 100%; margin-top: 16px;">Aceptar</button>
+            <button type="button" id="modal-close" class="action-btn primary btn-block">Aceptar</button>
         </div>
     </div>
 
-    <div id="playlist-modal" class="modal hidden">
+    <div id="playlist-modal" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="playlist-modal-title">
         <div class="modal-content nintendo-bouncy-modal">
-            <h3>Añadir a Playlist</h3>
-            <ul id="modal-playlist-list" class="track-list" style="max-height: 200px; overflow-y: auto; text-align: left;"></ul>
-            <button id="close-modal" class="action-btn secondary" style="margin-top: 16px; width: 100%;">Cancelar</button>
+            <h3 id="playlist-modal-title">Añadir a Playlist</h3>
+            <ul id="modal-playlist-list" class="track-list modal-track-list"></ul>
+            <button type="button" id="close-modal" class="action-btn secondary btn-block">Cancelar</button>
         </div>
     </div>
 
-    <div id="input-modal" class="modal hidden">
+    <div id="input-modal" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="input-modal-title">
         <div class="modal-content nintendo-bouncy-modal">
             <h3 id="input-modal-title">Título</h3>
-            <input type="text" id="input-modal-value" style="width: 100%; padding: 12px; margin: 16px 0; border-radius: 8px; border: 1px solid var(--surface-light); background: var(--surface-light); color: white; outline: none; font-family: inherit;" placeholder="Escribe aquí...">
-            <div style="display: flex; gap: 10px; justify-content: flex-end;">
-                <button id="input-modal-cancel" class="action-btn secondary">Cancelar</button>
-                <button id="input-modal-confirm" class="action-btn primary">Aceptar</button>
+            <input type="text" id="input-modal-value" class="modal-input" placeholder="Escribe aquí..." autocomplete="off">
+            <div class="modal-actions">
+                <button type="button" id="input-modal-cancel" class="action-btn secondary">Cancelar</button>
+                <button type="button" id="input-modal-confirm" class="action-btn primary">Aceptar</button>
             </div>
         </div>
     </div>
 
-    <div id="confirm-modal" class="modal hidden">
+    <div id="confirm-modal" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="confirm-modal-title" aria-describedby="confirm-modal-text">
         <div class="modal-content nintendo-bouncy-modal">
             <h3 id="confirm-modal-title">¿Estás seguro?</h3>
-            <p id="confirm-modal-text" style="margin: 16px 0; color: var(--text-muted);">Esta acción no se puede deshacer.</p>
-            <div style="display: flex; gap: 10px; justify-content: flex-end;">
-                <button id="confirm-modal-cancel" class="action-btn secondary">Cancelar</button>
-                <button id="confirm-modal-accept" class="action-btn" style="background-color: var(--nintendo-red); color: white;">Eliminar</button>
+            <p id="confirm-modal-text" class="modal-subtitle">Esta acción no se puede deshacer.</p>
+            <div class="modal-actions">
+                <button type="button" id="confirm-modal-cancel" class="action-btn secondary">Cancelar</button>
+                <button type="button" id="confirm-modal-accept" class="action-btn danger">Eliminar</button>
             </div>
         </div>
     </div>
 
-    <div id="playlist-settings-modal" class="modal hidden">
+    <div id="playlist-settings-modal" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="settings-modal-title">
         <div class="modal-content nintendo-bouncy-modal">
             <h3 id="settings-modal-title">Ajustes de Playlist</h3>
-            <div style="display: flex; flex-direction: column; gap: 12px; margin-top: 20px;">
-                <button id="btn-edit-cover" class="action-btn primary"><span class="material-symbols-rounded">image</span> Cambiar Portada</button>
-                <button id="btn-rename-playlist" class="action-btn secondary"><span class="material-symbols-rounded">edit</span> Renombrar</button>
-                <button id="btn-delete-playlist" class="action-btn" style="background-color: var(--nintendo-red); color: white;"><span class="material-symbols-rounded">delete</span> Eliminar</button>
-                <button id="close-settings-modal" class="action-btn secondary" style="margin-top: 8px; border: 1px solid var(--text-muted);">Cerrar Menú</button>
+            <div class="modal-menu">
+                <button type="button" id="btn-edit-cover" class="action-btn primary"><span class="material-symbols-rounded" aria-hidden="true">image</span> Cambiar Portada</button>
+                <button type="button" id="btn-rename-playlist" class="action-btn secondary"><span class="material-symbols-rounded" aria-hidden="true">edit</span> Renombrar</button>
+                <button type="button" id="btn-delete-playlist" class="action-btn danger"><span class="material-symbols-rounded" aria-hidden="true">delete</span> Eliminar</button>
+                <button type="button" id="close-settings-modal" class="action-btn secondary btn-outline">Cerrar Menú</button>
             </div>
         </div>
     </div>
 
-    <div id="youtube-modal" class="modal hidden">
-        <div class="modal-content nintendo-bouncy-modal" style="max-width: 600px; width: 95%;">
-            <h3 id="yt-modal-title" style="margin-bottom: 16px;">YouTube Playlist</h3>
-            <div style="position: relative; width: 100%; padding-bottom: 56.25%; height: 0; background: #000; border-radius: 8px; overflow: hidden;">
-                <div id="yt-player-container" style="position: absolute; top:0; left:0; width:100%; height:100%;"></div>
+    <div id="youtube-modal" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="yt-modal-title">
+        <div class="modal-content nintendo-bouncy-modal yt-modal-content">
+            <h3 id="yt-modal-title">YouTube Playlist</h3>
+            <div class="video-frame">
+                <div id="yt-player-container"></div>
             </div>
-            <button id="close-yt-modal" class="action-btn secondary" style="margin-top: 16px; width: 100%;">Cerrar Reproductor</button>
+            <button type="button" id="close-yt-modal" class="action-btn secondary btn-block">Cerrar Reproductor</button>
         </div>
     </div>
 
+    <div id="toast-container" role="status" aria-live="polite" aria-atomic="false"></div>
+
+    <!-- ================= HEADER ================= -->
     <header>
         <div class="logo-btn nintendo-bouncy">
-            <span class="material-symbols-rounded">music_note</span>
+            <span class="material-symbols-rounded" aria-hidden="true">music_note</span>
             Nintendo Music
         </div>
-        <div class="header-actions" style="display: flex; gap: 12px; margin-left: 20px;"></div>
-        <div class="profile-pic nintendo-bouncy">
-            <img src="https://ui-avatars.com/api/?name=M&background=e60012&color=fff" alt="Perfil">
+
+        <div class="mix-controls-group">
+            <button type="button" id="btn-random-mix" class="shuffle-btn nintendo-bouncy" title="Mezcla aleatoria" aria-label="Crear mezcla aleatoria">
+                <span class="material-symbols-rounded" aria-hidden="true">shuffle</span>
+            </button>
+            <button type="button" id="btn-save-mix" class="save-btn nintendo-bouncy" hidden title="Guardar mezcla" aria-label="Guardar la mezcla actual">
+                <span class="material-symbols-rounded" aria-hidden="true">save</span>
+            </button>
+        </div>
+
+        <div class="custom-dropdown">
+            <button type="button" class="dropdown-trigger" id="theme-trigger" aria-label="Cambiar tema" aria-haspopup="true" aria-expanded="false" aria-controls="theme-menu">
+                <span id="selected-icon-container" class="icon-wrapper">
+                    <span class="material-symbols-rounded" aria-hidden="true">dark_mode</span>
+                </span>
+            </button>
+            <ul class="dropdown-menu" id="theme-menu" role="menu" aria-label="Tema de la interfaz">
+                <li role="none">
+                    <button type="button" class="dropdown-item active" data-value="dark" role="menuitemradio" aria-checked="true">
+                        <span class="icon-wrapper"><span class="material-symbols-rounded" aria-hidden="true">dark_mode</span></span>
+                        <span>Tema Oscuro</span>
+                    </button>
+                </li>
+                <li role="none">
+                    <button type="button" class="dropdown-item" data-value="light" role="menuitemradio" aria-checked="false">
+                        <span class="icon-wrapper"><span class="material-symbols-rounded" aria-hidden="true">light_mode</span></span>
+                        <span>Tema Claro</span>
+                    </button>
+                </li>
+                <li role="none">
+                    <button type="button" class="dropdown-item" data-value="gamecube" role="menuitemradio" aria-checked="false">
+                        <span class="icon-wrapper"><span class="theme-swatch" aria-hidden="true"></span></span>
+                        <span>GameCube</span>
+                    </button>
+                </li>
+                <li role="none">
+                    <button type="button" class="dropdown-item" data-value="sheikah" role="menuitemradio" aria-checked="false">
+                        <span class="icon-wrapper"><span class="theme-swatch theme-swatch-sheikah" aria-hidden="true"></span></span>
+                        <span>Sheikah</span>
+                    </button>
+                </li>
+            </ul>
         </div>
     </header>
 
     <main id="app-content">
-        <section id="view-home" class="view active">
-            <div style="display: flex; justify-content: space-between; align-items: center;">
-                <h2 class="section-title" style="margin: 0;">Recientemente Escuchado</h2>
-                <div style="display: flex; align-items: center; gap: 10px;">
-                    <button id="btn-see-all-recent" class="action-btn secondary nintendo-bouncy" style="padding: 4px 10px; font-size: 12px;">Ver todo</button>
+        <!-- ================= HOME ================= -->
+        <section id="view-home" class="view active" aria-label="Inicio">
+
+            <div class="section-header">
+                <h2 class="section-title">Recientemente Escuchado</h2>
+                <div class="section-tools">
+                    <button type="button" id="btn-see-all-recent" class="chip-btn nintendo-bouncy">Ver todo</button>
                     <div class="scroll-buttons">
-                        <span class="material-symbols-rounded scroll-arrow left-arrow" data-target="recent-container">chevron_left</span>
-                        <span class="material-symbols-rounded scroll-arrow right-arrow" data-target="recent-container">chevron_right</span>
+                        <button type="button" class="scroll-arrow left-arrow" data-target="recent-container" aria-label="Desplazar a la izquierda">
+                            <span class="material-symbols-rounded" aria-hidden="true">chevron_left</span>
+                        </button>
+                        <button type="button" class="scroll-arrow right-arrow" data-target="recent-container" aria-label="Desplazar a la derecha">
+                            <span class="material-symbols-rounded" aria-hidden="true">chevron_right</span>
+                        </button>
                     </div>
                 </div>
             </div>
             <div class="horizontal-scroll" id="recent-container">
-                <p class="helper-text" style="padding: 16px 0;">Aquí aparecerá lo que escuches.</p>
+                <p class="helper-text">Aquí aparecerá lo que escuches.</p>
             </div>
 
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 24px;">
-                <h2 class="section-title" style="margin: 0;">Mis Juegos</h2>
-                <div style="display: flex; align-items: center; gap: 10px;">
-                    <select id="sort-home" class="action-btn secondary nintendo-bouncy" style="padding: 4px 10px; font-size: 12px; width: fit-content; flex: none; font-family: inherit; cursor: pointer; outline: none; border: none; color: var(--text-main);">
-                        <option value="alpha-asc" style="background: var(--surface-light);">A - Z</option>
-                        <option value="alpha-desc" style="background: var(--surface-light);">Z - A</option>
-                        <option value="songs-desc" style="background: var(--surface-light);">Más canciones</option>
-                        <option value="songs-asc" style="background: var(--surface-light);">Menos canciones</option>
-                    </select>
-
-                    <button id="btn-see-all-games" class="action-btn secondary nintendo-bouncy" style="padding: 4px 10px; font-size: 12px; width: fit-content; flex: none;">Ver todo</button>
+            <section class="home-section" id="recently-added-section" hidden>
+                <div class="section-header">
+                    <h2 class="section-title">Música Nueva <span class="section-subtitle">sin escuchar</span></h2>
                     <div class="scroll-buttons">
-                        <span class="material-symbols-rounded scroll-arrow left-arrow" data-target="home-games-container">chevron_left</span>
-                        <span class="material-symbols-rounded scroll-arrow right-arrow" data-target="home-games-container">chevron_right</span>
+                        <button type="button" class="scroll-arrow left-arrow" data-target="recently-added-container" aria-label="Desplazar a la izquierda">
+                            <span class="material-symbols-rounded" aria-hidden="true">chevron_left</span>
+                        </button>
+                        <button type="button" class="scroll-arrow right-arrow" data-target="recently-added-container" aria-label="Desplazar a la derecha">
+                            <span class="material-symbols-rounded" aria-hidden="true">chevron_right</span>
+                        </button>
+                    </div>
+                </div>
+                <div class="horizontal-scroll" id="recently-added-container"></div>
+            </section>
+
+            <div class="section-header">
+                <h2 class="section-title">Mis Juegos</h2>
+                <div class="section-tools">
+                    <select id="sort-home" class="select-sort" aria-label="Ordenar juegos">
+                        <option value="alpha-asc">A - Z</option>
+                        <option value="alpha-desc">Z - A</option>
+                        <option value="songs-desc">Más canciones</option>
+                        <option value="songs-asc">Menos canciones</option>
+                    </select>
+                    <button type="button" id="btn-see-all-games" class="chip-btn nintendo-bouncy">Ver todo</button>
+                    <div class="scroll-buttons">
+                        <button type="button" class="scroll-arrow left-arrow" data-target="home-games-container" aria-label="Desplazar a la izquierda">
+                            <span class="material-symbols-rounded" aria-hidden="true">chevron_left</span>
+                        </button>
+                        <button type="button" class="scroll-arrow right-arrow" data-target="home-games-container" aria-label="Desplazar a la derecha">
+                            <span class="material-symbols-rounded" aria-hidden="true">chevron_right</span>
+                        </button>
                     </div>
                 </div>
             </div>
             <div class="horizontal-scroll" id="home-games-container">
-                <p class="helper-text" style="padding: 16px 0;">Ve a "My Music" y carga tu carpeta de música.</p>
+                <p class="helper-text">Ve a «My Music» y carga tu carpeta de música.</p>
             </div>
 
-            <section class="home-section" id="mis-playlists-section" style="margin-top: 24px;">
-                <h2 style="margin-bottom: 16px;">Mis Playlists</h2>
-                <div class="grid-container" id="custom-playlists-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 16px;">
+            <section class="home-section" id="mis-playlists-section">
+                <div class="section-header">
+                    <h2 class="section-title">Mis Playlists</h2>
+                </div>
+                <div class="grid-container card-grid" id="custom-playlists-grid"></div>
+            </section>
+
+            <section class="home-section" id="favorites-section">
+                <div class="section-header">
+                    <h2 class="section-title">Favoritos</h2>
+                </div>
+                <div class="grid-container card-grid">
+                    <div class="card nintendo-bouncy" id="open-favorites-card" role="button" tabindex="0">
+                        <div class="card-img-placeholder is-accent">
+                            <span class="material-symbols-rounded card-art-icon" style="font-variation-settings: 'FILL' 1;" aria-hidden="true">favorite</span>
+                        </div>
+                        <p class="card-title">Mis Favoritos</p>
+                    </div>
                 </div>
             </section>
 
-            <h2 class="section-title" style="margin-top: 24px;">
-                Recomendados (YouTube)
+            <div class="section-header">
+                <h2 class="section-title">Recomendados <span class="section-subtitle">YouTube</span></h2>
                 <div class="scroll-buttons">
-                    <span class="material-symbols-rounded scroll-arrow left-arrow" data-target="recommended-container">chevron_left</span>
-                    <span class="material-symbols-rounded scroll-arrow right-arrow" data-target="recommended-container">chevron_right</span>
+                    <button type="button" class="scroll-arrow left-arrow" data-target="recommended-container" aria-label="Desplazar a la izquierda">
+                        <span class="material-symbols-rounded" aria-hidden="true">chevron_left</span>
+                    </button>
+                    <button type="button" class="scroll-arrow right-arrow" data-target="recommended-container" aria-label="Desplazar a la derecha">
+                        <span class="material-symbols-rounded" aria-hidden="true">chevron_right</span>
+                    </button>
                 </div>
-            </h2>
+            </div>
             <div class="horizontal-scroll" id="recommended-container"></div>
         </section>
 
-        <section id="view-all-games" class="view">
-            <div class="game-header-top" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-                <div style="display: flex; align-items: center; gap: 16px;">
-                    <button id="btn-back-from-games" class="nintendo-bouncy" style="background: none; border: none; color: white; cursor: pointer;"><span class="material-symbols-rounded" style="font-size: 28px;">arrow_back</span></button>
-                    <h2 style="margin: 0;">Todos mis juegos</h2>
+        <!-- ================= TODOS MIS JUEGOS ================= -->
+        <section id="view-all-games" class="view" aria-label="Todos mis juegos">
+            <div class="page-header">
+                <div class="page-header-title-group">
+                    <button type="button" id="btn-back-from-games" class="btn-icon-back nintendo-bouncy" aria-label="Volver">
+                        <span class="material-symbols-rounded" aria-hidden="true">arrow_back</span>
+                    </button>
+                    <h2>Todos mis juegos</h2>
                 </div>
-                <select id="sort-all" class="action-btn secondary nintendo-bouncy" style="padding: 4px 10px; font-size: 12px; width: fit-content; flex: none; font-family: inherit; cursor: pointer; outline: none; border: none; color: var(--text-main);">
-                    <option value="alpha-asc" style="background: var(--surface-light);">A - Z</option>
-                    <option value="alpha-desc" style="background: var(--surface-light);">Z - A</option>
-                    <option value="songs-desc" style="background: var(--surface-light);">Más canciones</option>
-                    <option value="songs-asc" style="background: var(--surface-light);">Menos canciones</option>
-                </select>
+
+                <div class="toolbar">
+                    <div class="search-bar-local">
+                        <span class="material-symbols-rounded" aria-hidden="true">search</span>
+                        <input type="text" id="search-all-games" placeholder="Buscar juego..." aria-label="Buscar juego" autocomplete="off">
+                    </div>
+
+                    <button type="button" id="btn-toggle-view" class="icon-btn nintendo-bouncy" title="Cambiar vista" aria-label="Cambiar entre grilla y lista">
+                        <span class="material-symbols-rounded" id="icon-toggle-view" aria-hidden="true">view_list</span>
+                    </button>
+
+                    <select id="sort-all" class="select-sort" aria-label="Ordenar juegos">
+                        <option value="alpha-asc">A - Z</option>
+                        <option value="alpha-desc">Z - A</option>
+                        <option value="songs-desc">Más canciones</option>
+                        <option value="songs-asc">Menos canciones</option>
+                    </select>
+                </div>
             </div>
-            <div id="all-games-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 16px; padding-bottom: 80px;">
-                </div>
+
+            <div id="all-games-grid" class="card-grid"></div>
         </section>
 
-        <section id="view-all-recent" class="view">
-            <div class="game-header-top" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-                <div style="display: flex; align-items: center; gap: 16px;">
-                    <button id="btn-back-from-recent" class="nintendo-bouncy" style="background: none; border: none; color: white; cursor: pointer;"><span class="material-symbols-rounded" style="font-size: 28px;">arrow_back</span></button>
-                    <h2 style="margin: 0;">Historial Completo</h2>
+        <!-- ================= HISTORIAL ================= -->
+        <section id="view-all-recent" class="view" aria-label="Historial completo">
+            <div class="page-header">
+                <div class="page-header-title-group">
+                    <button type="button" id="btn-back-from-recent" class="btn-icon-back nintendo-bouncy" aria-label="Volver">
+                        <span class="material-symbols-rounded" aria-hidden="true">arrow_back</span>
+                    </button>
+                    <h2>Historial Completo</h2>
                 </div>
-                <button id="btn-clear-recent" class="action-btn nintendo-bouncy" style="background-color: var(--nintendo-red); color: white; display: flex; align-items: center; gap: 4px; padding: 4px 12px; font-size: 12px; height: fit-content; width: fit-content; flex: none;">
-                    <span class="material-symbols-rounded" style="font-size: 16px;">delete</span> Vaciar
-                </button>
+
+                <div class="toolbar">
+                    <div class="search-bar-local">
+                        <span class="material-symbols-rounded" aria-hidden="true">search</span>
+                        <input type="text" id="search-recent" placeholder="Buscar historial..." aria-label="Buscar en el historial" autocomplete="off">
+                    </div>
+
+                    <button type="button" id="btn-toggle-recent-view" class="icon-btn nintendo-bouncy" title="Cambiar vista" aria-label="Cambiar entre grilla y lista">
+                        <span class="material-symbols-rounded" id="icon-toggle-recent-view" aria-hidden="true">view_list</span>
+                    </button>
+
+                    <button type="button" id="btn-clear-recent" class="btn-danger nintendo-bouncy">
+                        <span class="material-symbols-rounded" aria-hidden="true">delete</span> Vaciar
+                    </button>
+                </div>
             </div>
-            <div id="all-recent-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 16px; padding-bottom: 80px;">
-                </div>
+            <div id="all-recent-grid" class="card-grid"></div>
         </section>
 
-        <section id="view-search" class="view">
+        <!-- ================= BÚSQUEDA ================= -->
+        <section id="view-search" class="view" aria-label="Buscar">
             <div class="search-bar">
-                <span class="material-symbols-rounded">search</span>
-                <input type="text" id="search-input" placeholder="Buscar por canción o juego...">
+                <span class="material-symbols-rounded" aria-hidden="true">search</span>
+                <input type="text" id="search-input" placeholder="Buscar por canción o juego..." aria-label="Buscar por canción o juego" autocomplete="off">
             </div>
             <div id="search-suggestions">
-                <h3 style="margin-bottom: 16px; font-size: 18px;">Explorar Juegos</h3>
+                <h3 class="section-title-sm">Explorar Juegos</h3>
                 <div class="horizontal-scroll" id="explore-container">
-                    <p class="helper-text" style="padding: 16px 0;">Carga tu música para ver sugerencias.</p>
+                    <p class="helper-text">Carga tu música para ver sugerencias.</p>
                 </div>
             </div>
-            <ul id="search-results" class="track-list" style="display: none; padding-bottom: 80px;"></ul>
+            <ul id="search-results" class="track-list" hidden></ul>
         </section>
 
-        <section id="view-library" class="view">
-            <h2 class="section-title">Base de Datos Local</h2>
-            <p class="helper-text" id="db-status">Carga una carpeta. Se guardará automáticamente.</p>
-            <label class="upload-btn nintendo-bouncy">
-                <span class="material-symbols-rounded">folder_open</span>
-                Elegir Carpeta
-                <input type="file" id="audio-upload" webkitdirectory directory multiple accept="audio/*,text/plain,image/*">
-            </label>
-            <button id="clear-db-btn" class="upload-btn nintendo-bouncy" style="background:#440000; display:none;">Borrar BD</button>
-            
-            <h2 class="section-title" style="margin-top: 32px;">Mis Playlists</h2>
-            <div style="display:flex; gap:8px; margin-bottom:16px;">
-                <button id="create-playlist-btn" class="upload-btn nintendo-bouncy"><span class="material-symbols-rounded">add</span> Crear Lista</button>
-                <button id="export-btn" class="upload-btn nintendo-bouncy"><span class="material-symbols-rounded">download</span> Exportar</button>
-                <label class="upload-btn nintendo-bouncy">
-                    <span class="material-symbols-rounded">upload</span> Importar
-                    <input type="file" id="import-upload" accept=".json" style="display:none;">
-                </label>
+        <!-- ================= MI MÚSICA ================= -->
+        <section id="view-library" class="view" aria-label="Mi música">
+            <div class="library-block">
+                <h2>Base de Datos Local</h2>
+                <p class="helper-text" id="db-status" role="status" aria-live="polite">Añadiendo una carpeta. Se guardará automáticamente.</p>
+                <div class="library-actions">
+                    <label class="upload-btn nintendo-bouncy">
+                        <span class="material-symbols-rounded" aria-hidden="true">folder_open</span>
+                        Añadir Carpeta
+                        <input type="file" id="audio-upload" webkitdirectory directory multiple accept="audio/*,text/plain,image/*,video/mp4,video/webm,image/gif">
+                    </label>
+                    <button type="button" id="clear-db-btn" class="upload-btn nintendo-bouncy danger-upload" hidden>
+                        <span class="material-symbols-rounded" aria-hidden="true">delete</span> Borrar BD
+                    </button>
+                </div>
             </div>
-            <div class="horizontal-scroll" id="playlists-container" style="flex-wrap: wrap; gap: 16px; padding-bottom: 80px;">
+
+            <div class="library-block">
+                <h3>Carpetas Locales</h3>
+                <ul id="added-folders-list" class="track-list folder-list"></ul>
             </div>
+
+            <div class="library-block">
+                <h2>Mis Playlists</h2>
+                <div class="library-actions">
+                    <button type="button" id="create-playlist-btn" class="upload-btn nintendo-bouncy">
+                        <span class="material-symbols-rounded" aria-hidden="true">add</span> Crear Lista
+                    </button>
+                    <button type="button" id="export-btn" class="upload-btn nintendo-bouncy">
+                        <span class="material-symbols-rounded" aria-hidden="true">download</span> Exportar
+                    </button>
+                    <label class="upload-btn nintendo-bouncy">
+                        <span class="material-symbols-rounded" aria-hidden="true">upload</span> Importar
+                        <input type="file" id="import-upload" accept=".json,application/json">
+                    </label>
+                </div>
+                <div class="card-grid" id="playlists-container"></div>            </div>
         </section>
 
-        <section id="view-game" class="view">
+        <!-- ================= VISTA DE JUEGO / PLAYLIST ================= -->
+        <section id="view-game" class="view" aria-label="Pistas">
             <div class="game-header-top">
-                <button id="btn-back-home" class="nintendo-bouncy" style="background: none; border: none; color: white; cursor: pointer;"><span class="material-symbols-rounded" style="font-size: 28px;">arrow_back</span></button>
-            </div>
-            <div class="game-info-container">
-                <div class="game-cover-large" id="game-view-cover"></div>
-                <div class="game-details">
-                    <h2 id="game-view-title">Título del Juego</h2>
-                </div>
-            </div>
-            
-            <div class="game-actions" style="display: flex; gap: 12px; align-items: center;">
-                <button id="btn-play-all" class="action-btn primary nintendo-bouncy"><span class="material-symbols-rounded">play_arrow</span> Reproducir</button>
-                <button id="btn-shuffle-all" class="action-btn secondary nintendo-bouncy"><span class="material-symbols-rounded">shuffle</span> Aleatorio</button>
-                <button id="btn-playlist-settings" class="action-btn secondary nintendo-bouncy" style="display: none; padding: 12px; flex: 0 0 auto;" title="Ajustes de Playlist">
-                    <span class="material-symbols-rounded">settings</span>
+                <button type="button" id="btn-back-home" class="btn-icon-back nintendo-bouncy" aria-label="Volver">
+                    <span class="material-symbols-rounded" aria-hidden="true">arrow_back</span>
                 </button>
             </div>
-            
-            <div class="game-stats">
-                <span id="game-view-stats">0 temas</span>
+
+            <div class="game-info-container">
+                <div class="game-cover-large" id="game-view-cover" role="img" aria-label="Portada"></div>
+                <div class="game-details">
+                    <h2 id="game-view-title">Título del Juego</h2>
+                    <p id="game-view-composer"></p>
+                </div>
             </div>
-            <ul id="game-track-list" class="track-list" style="padding-bottom: 80px;"></ul>
+
+            <div class="game-actions">
+                <button type="button" id="btn-play-all" class="action-btn primary nintendo-bouncy">
+                    <span class="material-symbols-rounded" aria-hidden="true">play_arrow</span> Reproducir
+                </button>
+                <button type="button" id="btn-shuffle-all" class="action-btn secondary nintendo-bouncy">
+                    <span class="material-symbols-rounded" aria-hidden="true">shuffle</span> Aleatorio
+                </button>
+                <button type="button" id="btn-playlist-settings" class="action-btn secondary nintendo-bouncy icon-square" hidden title="Ajustes de Playlist" aria-label="Ajustes de la playlist">
+                    <span class="material-symbols-rounded" aria-hidden="true">settings</span>
+                </button>
+            </div>
+
+            <p class="game-stats" id="game-view-stats">0 temas</p>
+            <ul id="game-track-list" class="track-list"></ul>
         </section>
     </main>
 
+    <!-- ================= MINI REPRODUCTOR ================= -->
     <div id="mini-player" class="hidden">
-        <div class="mini-info" id="open-full-player">
-            <div class="mini-art" id="mini-art-cover"></div>
+        <canvas id="mini-visualizer" aria-hidden="true"></canvas>
+        <div class="mini-info" id="open-full-player" role="button" tabindex="0" aria-label="Abrir reproductor completo">
+            <div class="mini-art" id="mini-art-cover" aria-hidden="true"></div>
             <div class="mini-text">
                 <p class="song-title" id="mini-title">Selecciona una canción</p>
                 <p class="song-game" id="mini-game">Local</p>
             </div>
         </div>
         <div class="mini-controls">
-            <button id="mini-repeat" title="Bucle" class="nintendo-bouncy"><span class="material-symbols-rounded">repeat</span></button>
-            <button id="mini-play-pause" class="nintendo-bouncy"><span class="material-symbols-rounded">play_arrow</span></button>
-            <button id="mini-next" class="nintendo-bouncy"><span class="material-symbols-rounded">skip_next</span></button>
-            <button id="btn-close-mini-player" class="nintendo-bouncy" title="Cerrar Reproductor" style="margin-left: 8px; opacity: 0.7;"><span class="material-symbols-rounded">close</span></button>
+            <button type="button" id="mini-repeat" class="nintendo-bouncy" title="Repetir" aria-label="Cambiar modo de repetición" aria-pressed="false">
+                <span class="material-symbols-rounded" aria-hidden="true">repeat</span>
+            </button>
+            <button type="button" id="mini-play-pause" class="play-btn-mini nintendo-bouncy" title="Reproducir o pausar" aria-label="Reproducir o pausar">
+                <span class="material-symbols-rounded" aria-hidden="true">play_arrow</span>
+            </button>
+            <button type="button" id="mini-next" class="nintendo-bouncy" title="Siguiente" aria-label="Siguiente canción">
+                <span class="material-symbols-rounded" aria-hidden="true">skip_next</span>
+            </button>
+            <button type="button" id="btn-close-mini-player" class="nintendo-bouncy mini-close" title="Cerrar Reproductor" aria-label="Cerrar reproductor">
+                <span class="material-symbols-rounded" aria-hidden="true">close</span>
+            </button>
         </div>
     </div>
 
-    <nav id="bottom-nav">
-        <button class="nav-item active nintendo-bouncy" data-target="view-home">
-            <span class="material-symbols-rounded">home</span>
+    <!-- ================= NAVEGACIÓN ================= -->
+    <nav id="bottom-nav" aria-label="Navegación principal">
+        <button type="button" class="nav-item nintendo-bouncy active" data-target="view-home" id="btn-nav-home" aria-current="page">
+            <span class="material-symbols-rounded" aria-hidden="true">home</span>
             <span>Home</span>
         </button>
-        <button class="nav-item nintendo-bouncy" data-target="view-search">
-            <span class="material-symbols-rounded">search</span>
+        <button type="button" class="nav-item nintendo-bouncy" data-target="view-search" id="btn-nav-search">
+            <span class="material-symbols-rounded" aria-hidden="true">search</span>
             <span>Search</span>
         </button>
-        <button class="nav-item nintendo-bouncy" data-target="view-library">
-            <span class="material-symbols-rounded">library_music</span>
+        <button type="button" class="nav-item nintendo-bouncy" data-target="view-library" id="btn-nav-library">
+            <span class="material-symbols-rounded" aria-hidden="true">library_music</span>
             <span>My Music</span>
         </button>
+        <button type="button" class="nav-item nintendo-bouncy" id="btn-nav-favorites">
+            <span class="material-symbols-rounded" aria-hidden="true">favorite</span>
+            <span>Favoritos</span>
+        </button>
+
+        <div id="sidebar-playlists-container">
+            <h3 class="sidebar-label">Mis Listas</h3>
+            <ul id="sidebar-playlists-list" class="sidebar-playlists-list"></ul>
+        </div>
     </nav>
 
-    <div id="full-player" class="hidden">
-        <canvas id="visualizer"></canvas>
-        <div class="full-player-header">
-            <button id="close-full-player" title="Minimizar" class="nintendo-bouncy"><span class="material-symbols-rounded">keyboard_arrow_down</span></button>
-            <span class="player-title-header">Reproduciendo ahora</span>
-            <button id="btn-add-to-playlist" title="Añadir a Playlist" class="nintendo-bouncy"><span class="material-symbols-rounded">playlist_add</span></button>
-        </div>
-        
-        <div class="album-art-container">
-            <div class="album-art-large" id="full-art"></div>
-        </div>
+    <!-- ================= REPRODUCTOR COMPLETO ================= -->
+    <div id="full-player" class="hidden" role="dialog" aria-modal="true" aria-label="Reproductor completo">
+        <div id="background-video-container" aria-hidden="true"></div>
 
-        <div class="player-info">
-            <div>
-                <h2 id="full-title">Título de la canción</h2>
-                <p id="full-game">Juego / Álbum</p>
-                <p id="full-composer" class="composer-info"></p>
+        <canvas id="visualizer" aria-hidden="true"></canvas>
+
+        <div class="vinyl-container" aria-hidden="true">
+            <div id="vinyl-record" class="vinyl-record">
+                <div id="vinyl-label" class="vinyl-label"></div>
             </div>
         </div>
 
-        <div class="progress-container">
-            <input type="range" id="progress-bar" value="0" max="100" class="progress-bar-yt">
-            <div class="time-info">
-                <span id="current-time">0:00</span>
-                <span id="total-time">0:00</span>
+        <div class="full-player-body">
+            <div class="full-player-header">
+                <button type="button" id="close-full-player" title="Minimizar" aria-label="Minimizar reproductor" class="nintendo-bouncy">
+                    <span class="material-symbols-rounded" aria-hidden="true">keyboard_arrow_down</span>
+                </button>
+                <span class="player-title-header">Reproduciendo ahora</span>
+                <button type="button" id="btn-add-to-playlist" title="Añadir a Playlist" aria-label="Añadir a playlist" class="nintendo-bouncy">
+                    <span class="material-symbols-rounded" aria-hidden="true">playlist_add</span>
+                </button>
             </div>
-        </div>
 
-        <div class="main-controls">
-            <button id="btn-shuffle" class="nintendo-bouncy"><span class="material-symbols-rounded">shuffle</span></button>
-            <button id="btn-prev" class="nintendo-bouncy"><span class="material-symbols-rounded">skip_previous</span></button>
-            <button id="btn-play-pause" class="play-btn-large nintendo-bouncy"><span class="material-symbols-rounded">play_arrow</span></button>
-            <button id="btn-next" class="nintendo-bouncy"><span class="material-symbols-rounded">skip_next</span></button>
-            <button id="btn-repeat" class="nintendo-bouncy"><span class="material-symbols-rounded">repeat</span></button>
-        </div>
+            <div class="album-art-container">
+                <div class="album-art-large" id="full-art" role="img" aria-label="Portada del álbum"></div>
+            </div>
 
-        <div class="volume-container">
-            <span class="material-symbols-rounded">volume_mute</span>
-            <input type="range" id="volume-slider" min="0" max="100" value="100" class="progress-bar-yt">
-            <span class="material-symbols-rounded">volume_up</span>
-        </div>
+            <div class="player-info">
+                <div>
+                    <h2 id="full-title">Título</h2>
+                    <p id="full-game">Juego / Álbum</p>
+                    <p id="full-composer" class="composer-info"></p>
+                </div>
+            </div>
 
-        <div class="bottom-player-actions">
-            <button id="btn-show-playlist-player" title="Ver lista actual" class="nintendo-bouncy"><span class="material-symbols-rounded">queue_music</span></button>
-            <button class="nintendo-bouncy"><span class="material-symbols-rounded">share</span></button>
+            <div class="progress-container">
+                <input type="range" id="progress-bar" value="0" max="100" step="0.1" class="progress-bar-yt" aria-label="Progreso de la canción">
+                <div class="time-info">
+                    <span id="current-time">0:00</span>
+                    <span id="total-time">0:00</span>
+                </div>
+            </div>
+
+            <div class="main-controls">
+                <button type="button" id="btn-shuffle" class="nintendo-bouncy" aria-label="Aleatorio" aria-pressed="false">
+                    <span class="material-symbols-rounded" aria-hidden="true">shuffle</span>
+                </button>
+                <button type="button" id="btn-prev" class="nintendo-bouncy" aria-label="Canción anterior">
+                    <span class="material-symbols-rounded" aria-hidden="true">skip_previous</span>
+                </button>
+                <button type="button" id="btn-play-pause" class="play-btn-large nintendo-bouncy" aria-label="Reproducir o pausar">
+                    <span class="material-symbols-rounded" aria-hidden="true">pause</span>
+                </button>
+                <button type="button" id="btn-next" class="nintendo-bouncy" aria-label="Siguiente canción">
+                    <span class="material-symbols-rounded" aria-hidden="true">skip_next</span>
+                </button>
+                <button type="button" id="btn-repeat" class="nintendo-bouncy" aria-label="Cambiar modo de repetición" aria-pressed="false">
+                    <span class="material-symbols-rounded" aria-hidden="true">repeat</span>
+                </button>
+            </div>
+
+            <div class="volume-container">
+                <span class="material-symbols-rounded" aria-hidden="true">volume_down</span>
+                <input type="range" id="volume-slider" min="0" max="100" value="100" class="progress-bar-yt" aria-label="Volumen">
+                <span class="material-symbols-rounded" aria-hidden="true">volume_up</span>
+            </div>
+
+            <div class="bottom-player-actions">
+                <button type="button" id="btn-show-playlist-player" class="nintendo-bouncy" title="Ver lista actual" aria-label="Ver la lista actual">
+                    <span class="material-symbols-rounded" aria-hidden="true">queue_music</span>
+                </button>
+                <button type="button" id="btn-share" class="nintendo-bouncy" title="Compartir" aria-label="Compartir la canción actual">
+                    <span class="material-symbols-rounded" aria-hidden="true">share</span>
+                </button>
+            </div>
         </div>
     </div>
 
