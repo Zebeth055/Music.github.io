@@ -1,6 +1,35 @@
 // =====================================================================
-//  Nintendo Music — lógica de la aplicación
+//  Play Music — lógica de la aplicación
 // =====================================================================
+
+// =====================================================================
+//  MIGRACION DESDE "NINTENDO MUSIC"
+//  La app se renombro a Play Music. Las claves de localStorage y la base de
+//  datos tambien, pero antes de renombrarlas se copian los datos del usuario
+//  para que no pierda su biblioteca, playlists, favoritos ni volumen.
+//  Es idempotente: si no quedan datos antiguos, no hace nada.
+// =====================================================================
+const CLAVES_LEGADAS = {
+    nintendoPlaylists: 'playMusicPlaylists',
+    nintendoPlaylistCovers: 'playMusicPlaylistCovers',
+    nintendoRecent: 'playMusicRecent',
+    nintendoFavorites: 'playMusicFavorites',
+    nintendoRecentlyAddedGames: 'playMusicRecentlyAddedGames',
+    nintendoVolume: 'playMusicVolume'
+};
+
+function migrarClavesLocales() {
+    for (const [vieja, nueva] of Object.entries(CLAVES_LEGADAS)) {
+        let valor = null;
+        try { valor = localStorage.getItem(vieja); } catch (e) { continue; }
+        if (valor === null) continue;
+        try {
+            if (localStorage.getItem(nueva) === null) localStorage.setItem(nueva, valor);
+            localStorage.removeItem(vieja);
+        } catch (e) { /* cuota llena: se conserva la clave antigua */ }
+    }
+}
+migrarClavesLocales();
 
 // --- Variables Globales y Estado ---
 let libraryData = {};
@@ -14,7 +43,6 @@ let trackPendingToAdd = null;
 let currentGameView = null;
 let playlistToEditCover = null;
 let currentEditingPlaylist = null;
-let ytPlayer = null;
 
 let currentSortOrder = 'alpha-asc';
 let currentDerivedColor = '230, 0, 18';
@@ -26,22 +54,13 @@ let lastRenderedRecentTop = null;
 let lastFocusedEl = null;
 
 // Persistencia en LocalStorage
-let customPlaylists = JSON.parse(localStorage.getItem('nintendoPlaylists')) || {};
-let playlistCovers = JSON.parse(localStorage.getItem('nintendoPlaylistCovers')) || {};
-let recentlyPlayedPaths = JSON.parse(localStorage.getItem('nintendoRecent')) || [];
-let favoriteTracks = JSON.parse(localStorage.getItem('nintendoFavorites')) || [];
+let customPlaylists = JSON.parse(localStorage.getItem('playMusicPlaylists')) || {};
+let playlistCovers = JSON.parse(localStorage.getItem('playMusicPlaylistCovers')) || {};
+let recentlyPlayedPaths = JSON.parse(localStorage.getItem('playMusicRecent')) || [];
+let favoriteTracks = JSON.parse(localStorage.getItem('playMusicFavorites')) || [];
 
 // Almacenaje de Juegos (Carpetas) añadidas recientemente con temporizador
-let recentlyAddedGames = JSON.parse(localStorage.getItem('nintendoRecentlyAddedGames')) || [];
-
-// Playlists dinámicas de YouTube (Home)
-const youtubePlaylists = [
-    { title: "Nintendo Switch Music Selects", youtubeListId: "PLrL344CrHANP5UG2yt_f9eBn8RB75W5bw", thumbnail: "https://upload.wikimedia.org/wikipedia/commons/thumb/f/f0/Nintendo_Switch_logo.svg/500px-Nintendo_Switch_logo.svg.png" },
-    { title: "Zelda: Ocarina of Time OST", youtubeListId: "PLqSYV7fIfmTSioyTAcFe3ZbikHyhb2D-x", thumbnail: "https://upload.wikimedia.org/wikipedia/en/3/30/The_Legend_of_Zelda_Ocarina_of_Time_3D_box_art.png" },
-    { title: "Super Mario Galaxy OST", youtubeListId: "PL821DF3D553F1E8B9", thumbnail: "https://assets.nintendo.com/image/upload/ar_16:9,c_lpad,w_1240/b_white/f_auto/q_auto/store/software/switch/70010000104187/7ccc1c07ba3995da1dbd7320e726e063eaba9445a5741281d19c3b8fb1c144df" },
-    { title: "Donkey Kong Bananza", youtubeListId: "PL3Ydt8g2VQ4Hrag6mehy1t9P3p2im57as", thumbnail: "https://www.nintendo.com/eu/media/images/assets/nintendo_switch_2_games/donkey_kong_bananza/16x9_DonkeyKongBananza_image1600w.jpg" },
-    { title: "F-Zero X OST", youtubeListId: "PL5123E919D2B619CC", thumbnail: "https://sm.ign.com/ign_es/cover/f/f-zero-x/f-zero-x_uyh9.jpg" }
-];
+let recentlyAddedGames = JSON.parse(localStorage.getItem('playMusicRecentlyAddedGames')) || [];
 
 // --- Elementos del DOM ---
 const audioPlayer = new Audio();
@@ -56,7 +75,6 @@ const searchSuggestions = document.getElementById('search-suggestions');
 const exploreContainer = document.getElementById('explore-container');
 const recentContainer = document.getElementById('recent-container');
 const homeGamesContainer = document.getElementById('home-games-container');
-const ytRecommendedContainer = document.getElementById('recommended-container');
 const playlistsContainer = document.getElementById('playlists-container');
 const playlistCoverInput = document.getElementById('playlist-cover-input');
 const toastContainer = document.getElementById('toast-container');
@@ -271,20 +289,6 @@ document.addEventListener('keydown', (e) => {
 });
 
 // =====================================================================
-//  INICIALIZACIÓN DE YOUTUBE API
-// =====================================================================
-function onYouTubeIframeAPIReady() {
-    ytPlayer = new YT.Player('yt-player-container', {
-        height: '100%', width: '100%',
-        playerVars: { 'autoplay': 0, 'controls': 1, 'rel': 0, 'fs': 1 }
-    });
-}
-document.getElementById('close-yt-modal')?.addEventListener('click', () => {
-    closeModalEl(document.getElementById('youtube-modal'));
-    if (ytPlayer && ytPlayer.stopVideo) ytPlayer.stopVideo();
-});
-
-// =====================================================================
 //  SCROLL HORIZONTAL
 // =====================================================================
 function updateScrollArrows() {
@@ -341,7 +345,7 @@ function setVolume(value, persist = false) {
     }
     paintVolumeIcons(clamped);
     if (persist) {
-        try { localStorage.setItem('nintendoVolume', String(clamped)); } catch (e) { /* cuota llena */ }
+        try { localStorage.setItem('playMusicVolume', String(clamped)); } catch (e) { /* cuota llena */ }
     }
 }
 
@@ -350,14 +354,66 @@ volumeSlider?.addEventListener('input', (e) => setVolume(Number(e.target.value),
 // =====================================================================
 //  BASE DE DATOS (IndexedDB)
 // =====================================================================
-const DB_NAME = 'NintendoMusicDB';
-function openDB() {
+const DB_NAME = 'PlayMusicDB';
+const DB_LEGADA = 'NintendoMusicDB';
+
+function abrirDB(nombre) {
     return new Promise((res, rej) => {
-        const req = indexedDB.open(DB_NAME, 1);
-        req.onupgradeneeded = e => e.target.result.createObjectStore('files', { keyPath: 'path' });
+        const req = indexedDB.open(nombre, 1);
+        req.onupgradeneeded = e => {
+            const db = e.target.result;
+            if (!db.objectStoreNames.contains('files')) db.createObjectStore('files', { keyPath: 'path' });
+        };
         req.onsuccess = () => res(req.result);
         req.onerror = () => rej(req.error);
     });
+}
+
+function openDB() { return abrirDB(DB_NAME); }
+
+// Copia los archivos de la base de datos antigua a la nueva y luego la borra,
+// para que el usuario no pierda la biblioteca al renombrar la app.
+async function migrarBaseDeDatos() {
+    let vieja = null;
+    try { vieja = await abrirDB(DB_LEGADA); } catch (e) { return; }
+    if (!vieja) return;
+
+    let registros = [];
+    try {
+        if (vieja.objectStoreNames.contains('files')) {
+            registros = await new Promise((res, rej) => {
+                const rq = vieja.transaction('files', 'readonly').objectStore('files').getAll();
+                rq.onsuccess = () => res(rq.result || []);
+                rq.onerror = () => rej(rq.error);
+            });
+        }
+    } catch (e) {
+        registros = [];
+    } finally {
+        vieja.close();
+    }
+
+    if (registros.length === 0) {
+        // No habia nada guardado: se borra la base vacia que se abrio al vuelo.
+        indexedDB.deleteDatabase(DB_LEGADA);
+        return;
+    }
+
+    try {
+        const nueva = await openDB();
+        const total = await new Promise((res, rej) => {
+            const tx = nueva.transaction('files', 'readwrite');
+            const store = tx.objectStore('files');
+            registros.forEach(reg => { try { store.put(reg); } catch (e) { /* registro ilegible */ } });
+            tx.oncomplete = () => res(registros.length);
+            tx.onerror = () => rej(tx.error);
+        });
+        nueva.close();
+        indexedDB.deleteDatabase(DB_LEGADA);
+        console.info('Biblioteca migrada a ' + DB_NAME + ': ' + total + ' archivos.');
+    } catch (e) {
+        console.warn('No se pudo migrar la base de datos anterior:', e);
+    }
 }
 
 async function loadFilesFromDB() {
@@ -380,6 +436,7 @@ async function loadFilesFromDB() {
     }
 
     if (data.length > 0) {
+        datosBiblioteca = data;
         if (statusEl) statusEl.textContent = `Música cargada (${data.length} archivos).`;
         setHidden(clearBtn, false);
         await processLibrary(data);
@@ -387,6 +444,7 @@ async function loadFilesFromDB() {
         return;
     }
 
+    datosBiblioteca = [];
     setHidden(clearBtn, true);
     if (statusEl && !statusEl.textContent.startsWith('No se pudo')) {
         statusEl.textContent = 'Carga una carpeta. Se guardará automáticamente.';
@@ -565,16 +623,16 @@ function applyTrackColors(track, hasBg) {
 //  DOMContentLoaded
 // =====================================================================
 document.addEventListener('DOMContentLoaded', () => {
-    loadFilesFromDB();
+    // Primero se copian los datos del nombre anterior; despues se lee nada.
+    migrarBaseDeDatos().finally(() => loadFilesFromDB());
     renderPlaylistsUI();
     renderHomeCustomPlaylists();
-    renderYoutubeHome();
     updateRepeatUI();
     updateSidebarPlaylists();
     updateScrollArrows();
 
-    const storedVolume = Number(localStorage.getItem('nintendoVolume'));
-    setVolume(Number.isFinite(storedVolume) && localStorage.getItem('nintendoVolume') !== null ? storedVolume : 100);
+    const storedVolume = Number(localStorage.getItem('playMusicVolume'));
+    setVolume(Number.isFinite(storedVolume) && localStorage.getItem('playMusicVolume') !== null ? storedVolume : 100);
 
     // El progreso se pinta en el color del tema (estable y siempre visible)
     paintSlider(progressBar, 0);
@@ -599,7 +657,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 const tx = db.transaction('files', 'readwrite');
                 tx.objectStore('files').clear();
                 tx.oncomplete = () => {
-                    ['nintendoPlaylists', 'nintendoPlaylistCovers', 'nintendoRecent', 'nintendoRecentlyAddedGames', 'nintendoFavorites']
+                    ['playMusicPlaylists', 'playMusicPlaylistCovers', 'playMusicRecent', 'playMusicRecentlyAddedGames', 'playMusicFavorites']
                         .forEach(key => localStorage.removeItem(key));
                     location.reload();
                 };
@@ -683,7 +741,7 @@ function toggleFavorite(path, e) {
         favoriteTracks.push(path);
     }
     try {
-        localStorage.setItem('nintendoFavorites', JSON.stringify(favoriteTracks));
+        localStorage.setItem('playMusicFavorites', JSON.stringify(favoriteTracks));
     } catch (err) {
         toast('No se pudo guardar el favorito (almacenamiento lleno).', 'error');
     }
@@ -708,7 +766,7 @@ function updateSidebarPlaylists() {
         const li = document.createElement('li');
         const button = document.createElement('button');
         button.type = 'button';
-        button.className = 'sidebar-playlist-item nintendo-bouncy';
+        button.className = 'sidebar-playlist-item bouncy';
         button.innerHTML = `<span class="material-symbols-rounded" aria-hidden="true">queue_music</span><span>${esc(listName)}</span>`;
         button.addEventListener('click', () => {
             const pl = customPlaylists[listName].map(path => globalAllTracks[path]).filter(Boolean);
@@ -728,53 +786,245 @@ function updateSidebarPlaylists() {
 // =====================================================================
 //  CARGA DE CARPETAS
 // =====================================================================
-document.getElementById('audio-upload')?.addEventListener('change', async (e) => {
-    const files = Array.from(e.target.files);
-    if (files.length === 0) return;
+
+// Estado de la carga en curso, para poder cancelarla a mitad
+const CARGA = { activa: false, cancelada: false, total: 0, procesados: 0 };
+
+// Todos los items que hay en la biblioteca (los de la BD). Se mantiene para
+// poder repintar las carpetas mientras carga, sin releer la base de datos.
+let datosBiblioteca = [];
+
+function setCargaUI(visible) {
+    setHidden(document.getElementById('cancel-load-btn'), !visible);
+    setHidden(document.getElementById('load-progress'), !visible);
+    setHidden(document.getElementById('load-current'), !visible);
+    if (!visible) {
+        const bar = document.getElementById('load-progress-bar');
+        if (bar) bar.style.width = '0%';
+        const cur = document.getElementById('load-current');
+        if (cur) cur.textContent = '';
+    }
+}
+
+function setProgresoCarga(hechos, total, nombreActual) {
+    const pct = total > 0 ? Math.min(100, Math.round((hechos / total) * 100)) : 0;
     const statusEl = document.getElementById('db-status');
-    if (statusEl) statusEl.textContent = `Preparando ${files.length} archivos...`;
+    const bar = document.getElementById('load-progress-bar');
+    const cur = document.getElementById('load-current');
+    if (statusEl) statusEl.textContent = `Cargando ${hechos} / ${total} archivos (${pct}%)`;
+    if (bar) bar.style.width = `${pct}%`;
+    if (cur) cur.textContent = nombreActual || '';
+}
 
-    const db = await openDB();
-    const CHUNK_SIZE = 100;
-    let processedCount = 0;
-    const uploadedGames = new Set();
-    const AUDIO_RE = /\.(mp3|flac|wav|m4a|ogg|aac|opus|wma|ape)$/i;
+function obtenerJuego(nombre) {
+    if (!libraryData[nombre]) {
+        libraryData[nombre] = { title: nombre, tracks: [], coverUrl: null, composerInfo: '', customBackground: null };
+    }
+    return libraryData[nombre];
+}
 
-    for (let i = 0; i < files.length; i += CHUNK_SIZE) {
-        const chunk = files.slice(i, i + CHUNK_SIZE);
+// Incorpora un lote de archivos ya a la biblioteca en memoria, para que
+// aparezcan en pantalla segun llegan en vez de al final.
+// Devuelve los juegos tocados por este lote.
+async function ingestarLote(items) {
+    const juegos = new Set();
+
+    // Recursos del juego: portada, compositor y fondo
+    for (const item of items) {
+        const parts = item.path.split('/');
+        const nombre = parts.length > 1 ? parts[parts.length - 2] : 'Otros';
+        const juego = obtenerJuego(nombre);
+        juegos.add(nombre);
+
+        if (item.file.name.match(/\.(jpe?g|png|webp|gif)$/i)) {
+            // La portada puede llegar despues que las canciones: se les
+            // actualiza a las pistas ya guardadas de ese juego.
+            if (juego.coverUrl) URL.revokeObjectURL(juego.coverUrl);
+            juego.coverUrl = URL.createObjectURL(item.file);
+            juego.tracks.forEach(t => { t.coverUrl = juego.coverUrl; });
+        } else if (item.file.name.match(/\.txt$/i)) {
+            try { juego.composerInfo = (await item.file.text()).trim(); } catch { /* ilegible */ }
+        } else if (item.file.name.match(/\.(mp4|gif|webm)$/i)) {
+            if (juego.customBackground) URL.revokeObjectURL(juego.customBackground.url);
+            juego.customBackground = {
+                url: URL.createObjectURL(item.file),
+                isVideo: item.file.name.match(/\.(mp4|webm)$/i) !== null
+            };
+        }
+    }
+
+    // Pistas de audio
+    for (const item of items) {
+        if (!isAudioFile(item.file)) continue;
+        const parts = item.path.split('/');
+        const nombre = parts.length > 1 ? parts[parts.length - 2] : 'Otros';
+        const juego = obtenerJuego(nombre);
+        juegos.add(nombre);
+
+        const trackObj = {
+            path: item.path,
+            name: item.file.name.replace(/\.[^/.]+$/, ''),
+            gameName: nombre,
+            file: item.file,
+            coverUrl: juego.coverUrl,
+            composerInfo: juego.composerInfo,
+            customBackground: juego.customBackground
+        };
+        juego.tracks.push(trackObj);
+        globalAllTracks[item.path] = trackObj;
+    }
+
+    return juegos;
+}
+
+async function borrarRutas(db, rutas) {
+    for (let i = 0; i < rutas.length; i += 200) {
+        const trozo = rutas.slice(i, i + 200);
         await new Promise((resolve, reject) => {
             const tx = db.transaction('files', 'readwrite');
             const store = tx.objectStore('files');
-            chunk.forEach(f => {
-                const path = f.webkitRelativePath || f.name;
-                store.put({ file: f, path: path });
-                if (f.type.startsWith('audio/') || AUDIO_RE.test(f.name)) {
-                    const parts = path.split('/');
-                    uploadedGames.add(parts.length > 1 ? parts[parts.length - 2] : 'Otros');
-                }
-            });
+            trozo.forEach(p => store.delete(p));
             tx.oncomplete = () => resolve();
             tx.onerror = () => reject(tx.error);
         });
-        processedCount += chunk.length;
-        if (statusEl) statusEl.textContent = `Guardando... ${processedCount} / ${files.length} archivos`;
-        await new Promise(r => setTimeout(r, 10));
     }
+}
+
+document.getElementById('cancel-load-btn')?.addEventListener('click', () => {
+    if (!CARGA.activa) return;
+    CARGA.cancelada = true;
+    const statusEl = document.getElementById('db-status');
+    if (statusEl) statusEl.textContent = 'Cancelando...';
+});
+
+document.getElementById('audio-upload')?.addEventListener('change', async (e) => {
+    const files = Array.from(e.target.files);
+    if (files.length === 0) return;
+
+    if (CARGA.activa) {
+        toast('Espera a que termine la carga actual.', 'info');
+        e.target.value = '';
+        return;
+    }
+
+    const statusEl = document.getElementById('db-status');
+    const db = await openDB();
+    const CHUNK_SIZE = 100;
+
+    // Rutas que ya estaban en la biblioteca: si se cancela, solo se borra lo
+    // que se haya anadido ahora, nunca lo que ya estaba.
+    const existentes = new Set(await new Promise((res, rej) => {
+        const rq = db.transaction('files', 'readonly').objectStore('files').getAllKeys();
+        rq.onsuccess = () => res(rq.result);
+        rq.onerror = () => rej(rq.error);
+    }));
+
+    CARGA.activa = true;
+    CARGA.cancelada = false;
+    CARGA.total = files.length;
+    CARGA.procesados = 0;
+    setCargaUI(true);
+    setProgresoCarga(0, files.length, '');
+
+    const rutasNuevas = [];
+    const juegosNuevos = new Set();
+    let ultimoPintado = 0;
+
+    try {
+        for (let i = 0; i < files.length; i += CHUNK_SIZE) {
+            if (CARGA.cancelada) break;
+
+            const chunk = files.slice(i, i + CHUNK_SIZE);
+            const items = chunk.map(f => ({ file: f, path: f.webkitRelativePath || f.name }));
+
+            await new Promise((resolve, reject) => {
+                const tx = db.transaction('files', 'readwrite');
+                const store = tx.objectStore('files');
+                items.forEach(it => {
+                    store.put({ file: it.file, path: it.path });
+                    rutasNuevas.push(it.path);
+                });
+                tx.oncomplete = () => resolve();
+                tx.onerror = () => reject(tx.error);
+            });
+
+            datosBiblioteca = datosBiblioteca.concat(items);
+            const tocados = await ingestarLote(items);
+            tocados.forEach(j => juegosNuevos.add(j));
+            CARGA.procesados += chunk.length;
+
+            const ultimo = items[items.length - 1];
+            setProgresoCarga(CARGA.procesados, files.length, ultimo.path);
+
+            // Se repinta de forma progresiva y espaciada: la interfaz sigue
+            // respondiendo aunque sean miles de archivos.
+            const ahora = performance.now();
+            if (ultimoPintado === 0 || ahora - ultimoPintado > 250) {
+                ultimoPintado = ahora;
+                renderFoldersList(datosBiblioteca);
+                renderHomeCards();
+                setHidden(document.getElementById('clear-db-btn'), false);
+            }
+            await new Promise(r => setTimeout(r, 0));
+        }
+
+        // Portadas incrustadas: la parte lenta, y tambien se puede cancelar
+        const pendientes = [...juegosNuevos].filter(n => !libraryData[n].coverUrl && libraryData[n].tracks.length > 0);
+        for (let i = 0; i < pendientes.length; i++) {
+            if (CARGA.cancelada) break;
+            const nombre = pendientes[i];
+            const juego = libraryData[nombre];
+            if (statusEl) statusEl.textContent = `Analizando metadata (${i + 1}/${pendientes.length}): ${nombre}...`;
+            const cover = await extractEmbeddedCover(juego.tracks[0].file);
+            if (cover) {
+                juego.coverUrl = cover;
+                juego.tracks.forEach(t => { t.coverUrl = cover; });
+            }
+            await new Promise(r => setTimeout(r, 0));
+        }
+    } catch (err) {
+        console.error('Error durante la carga:', err);
+        if (statusEl) statusEl.textContent = 'Hubo un error al cargar. Se ha restaurado la biblioteca.';
+    }
+
+    if (CARGA.cancelada) {
+        if (statusEl) statusEl.textContent = 'Cancelando...';
+        await borrarRutas(db, rutasNuevas.filter(p => !existentes.has(p)));
+        db.close();
+        setCargaUI(false);
+        // Se sigue marcando como activa hasta terminar de restaurar, para que
+        // el estado no desaparezca mientras se está limpiando.
+        await loadFilesFromDB();
+        CARGA.activa = false;
+        if (statusEl) statusEl.textContent = 'Carga cancelada.';
+        toast('Carga cancelada.', 'info');
+        e.target.value = '';
+        return;
+    }
+
     db.close();
+    CARGA.activa = false;
+    setCargaUI(false);
 
     const now = Date.now();
-    uploadedGames.forEach(gameName => {
+    juegosNuevos.forEach(gameName => {
         recentlyAddedGames = recentlyAddedGames.filter(g => g.name !== gameName);
         recentlyAddedGames.unshift({ name: gameName, timestamp: now });
     });
     recentlyAddedGames = recentlyAddedGames.slice(0, 20);
-    localStorage.setItem('nintendoRecentlyAddedGames', JSON.stringify(recentlyAddedGames));
+    localStorage.setItem('playMusicRecentlyAddedGames', JSON.stringify(recentlyAddedGames));
 
-    if (statusEl) statusEl.textContent = '¡Carga completada! Actualizando biblioteca...';
+    if (statusEl) statusEl.textContent = `Música cargada (${Object.keys(globalAllTracks).length} canciones).`;
+    renderFoldersList(datosBiblioteca);
+    renderHomeCards();
+    renderRecent(true);
+    renderRecentlyAdded();
+    renderSearchSuggestions();
+    scheduleArrowUpdate();
     toast(`${files.length} archivos añadidos.`, 'success');
-    loadFilesFromDB();
     e.target.value = '';
 });
+
 
 // =====================================================================
 //  GESTIÓN DE CARPETAS INDIVIDUALES
@@ -864,8 +1114,8 @@ async function deleteFolderFromDB(folderPath) {
 
         recentlyPlayedPaths = recentlyPlayedPaths.filter(p => !deletedSet.has(p));
         favoriteTracks = favoriteTracks.filter(p => !deletedSet.has(p));
-        localStorage.setItem('nintendoRecent', JSON.stringify(recentlyPlayedPaths));
-        localStorage.setItem('nintendoFavorites', JSON.stringify(favoriteTracks));
+        localStorage.setItem('playMusicRecent', JSON.stringify(recentlyPlayedPaths));
+        localStorage.setItem('playMusicFavorites', JSON.stringify(favoriteTracks));
         lastRenderedRecentTop = null;
 
         toast(`Carpeta «${folderPath.split('/').pop()}» eliminada.`, 'success');
@@ -960,7 +1210,7 @@ async function processLibrary(dbData) {
 // =====================================================================
 function createGameCard(game) {
     const card = document.createElement('div');
-    card.className = 'card nintendo-bouncy';
+    card.className = 'card bouncy';
     card.tabIndex = 0;
     card.setAttribute('role', 'button');
     card.setAttribute('aria-label', `Abrir ${game.title}`);
@@ -1051,7 +1301,7 @@ sortAll?.addEventListener('change', handleSortChange);
 
 function createRecentCard(track) {
     const card = document.createElement('div');
-    card.className = 'card nintendo-bouncy';
+    card.className = 'card bouncy';
     card.tabIndex = 0;
     card.setAttribute('role', 'button');
     card.setAttribute('aria-label', `Reproducir ${track.name}`);
@@ -1086,7 +1336,7 @@ function renderRecentlyAdded() {
 
     if (validGames.length !== recentlyAddedGames.length) {
         recentlyAddedGames = validGames;
-        localStorage.setItem('nintendoRecentlyAddedGames', JSON.stringify(recentlyAddedGames));
+        localStorage.setItem('playMusicRecentlyAddedGames', JSON.stringify(recentlyAddedGames));
     }
 
     setHidden(section, recentlyAddedGames.length === 0);
@@ -1102,7 +1352,7 @@ function renderRecentlyAdded() {
         const card = createGameCard(game);
         card.addEventListener('click', () => {
             recentlyAddedGames = recentlyAddedGames.filter(g => g.name !== game.title);
-            localStorage.setItem('nintendoRecentlyAddedGames', JSON.stringify(recentlyAddedGames));
+            localStorage.setItem('playMusicRecentlyAddedGames', JSON.stringify(recentlyAddedGames));
             renderRecentlyAdded();
         });
         fragment.appendChild(card);
@@ -1152,7 +1402,7 @@ function renderRecent(force = false) {
 document.getElementById('btn-clear-recent')?.addEventListener('click', () => {
     showConfirmModal('¿Vaciar historial?', 'Se borrará tu lista de temas escuchados recientemente.', () => {
         recentlyPlayedPaths = [];
-        localStorage.setItem('nintendoRecent', JSON.stringify(recentlyPlayedPaths));
+        localStorage.setItem('playMusicRecent', JSON.stringify(recentlyPlayedPaths));
         renderRecent(true);
         toast('Historial vaciado.', 'success');
     });
@@ -1162,40 +1412,6 @@ document.getElementById('btn-see-all-games')?.addEventListener('click', () => sw
 document.getElementById('btn-see-all-recent')?.addEventListener('click', () => switchView('view-all-recent'));
 document.getElementById('btn-back-from-games')?.addEventListener('click', () => switchView('view-home'));
 document.getElementById('btn-back-from-recent')?.addEventListener('click', () => switchView('view-home'));
-
-// =====================================================================
-//  YOUTUBE EN HOME
-// =====================================================================
-function renderYoutubeHome() {
-    if (!ytRecommendedContainer) return;
-    const fragment = document.createDocumentFragment();
-
-    youtubePlaylists.forEach(list => {
-        const card = document.createElement('div');
-        card.className = 'card nintendo-bouncy';
-        card.tabIndex = 0;
-        card.setAttribute('role', 'button');
-        card.setAttribute('aria-label', `Abrir la playlist de YouTube ${list.title}`);
-        card.innerHTML = `<div class="card-img-placeholder" style="background-image: url('${esc(list.thumbnail)}');"></div><p class="card-title">${esc(list.title)}</p>`;
-
-        const open = () => {
-            if (isPlaying) togglePlay();
-            const modalTitle = document.getElementById('yt-modal-title');
-            if (modalTitle) modalTitle.textContent = list.title;
-            openModalEl(document.getElementById('youtube-modal'));
-            if (ytPlayer && ytPlayer.loadPlaylist) {
-                ytPlayer.loadPlaylist({ listType: 'playlist', list: list.youtubeListId });
-            }
-        };
-        card.addEventListener('click', open);
-        card.addEventListener('keydown', (e) => {
-            if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); open(); }
-        });
-        fragment.appendChild(card);
-    });
-
-    ytRecommendedContainer.replaceChildren(fragment);
-}
 
 // =====================================================================
 //  BÚSQUEDA
@@ -1278,7 +1494,7 @@ function createTrackRow(track, onPlay, index = null) {
 
     const coverStyle = track.coverUrl
         ? `background-image: url('${esc(track.coverUrl)}');`
-        : 'background-color: var(--nintendo-red);';
+        : 'background-color: var(--accent-red);';
 
     li.innerHTML = `
         ${index !== null ? `<span class="track-index" aria-hidden="true">${index + 1}</span>` : ''}
@@ -1316,6 +1532,60 @@ function updateNowPlayingUI() {
 // =====================================================================
 //  VISTA DE JUEGO / PLAYLIST
 // =====================================================================
+
+// Lotes de pintado. Con listas enormes, dibujar todas las filas de golpe
+// congela la ventana durante segundos.
+const PISTAS_LOTE = 150;
+let tokenPintadoPistas = 0;
+
+function pintarPistas(listEl, game) {
+    const tracks = game.tracks;
+    const token = ++tokenPintadoPistas;
+
+    // Caso normal (lista corta): se dibuja entero, como siempre.
+    if (tracks.length <= PISTAS_LOTE) {
+        const fragment = document.createDocumentFragment();
+        tracks.forEach((track, index) => {
+            const idx = index;
+            fragment.appendChild(createTrackRow(track, () => {
+                currentPlaylist = [...game.tracks];
+                playTrack(idx);
+            }, idx));
+        });
+        listEl.appendChild(fragment);
+        return;
+    }
+
+    // Lista larga: por tandas, cediendo el hilo entre cada una.
+    const aviso = document.createElement('li');
+    aviso.className = 'track-list-loading';
+    aviso.innerHTML = '<span class="material-symbols-rounded" aria-hidden="true">hourglass_top</span> Cargando más canciones...';
+    listEl.appendChild(aviso);
+
+    let i = 0;
+    const tanda = () => {
+        // Si el usuario abrio otra vista mientras tanto, se abandona.
+        if (token !== tokenPintadoPistas || !listEl.isConnected) return;
+
+        const fin = Math.min(i + PISTAS_LOTE, tracks.length);
+        const fragment = document.createDocumentFragment();
+        for (; i < fin; i++) {
+            const idx = i;
+            fragment.appendChild(createTrackRow(tracks[i], () => {
+                currentPlaylist = [...game.tracks];
+                playTrack(idx);
+            }, idx));
+        }
+        listEl.insertBefore(fragment, aviso);
+
+        if (i < tracks.length) {
+            requestAnimationFrame(tanda);
+        } else {
+            aviso.remove();
+        }
+    };
+    requestAnimationFrame(tanda);
+}
 function openGameView(game, isCustomPlaylist = false) {
     currentGameView = game;
     switchView('view-game');
@@ -1334,7 +1604,7 @@ function openGameView(game, isCustomPlaylist = false) {
             coverEl.style.backgroundColor = '';
         } else {
             coverEl.style.backgroundImage = 'none';
-            coverEl.style.backgroundColor = 'var(--nintendo-red)';
+            coverEl.style.backgroundColor = 'var(--accent-red)';
         }
     }
 
@@ -1348,14 +1618,7 @@ function openGameView(game, isCustomPlaylist = false) {
         if (game.tracks.length === 0) {
             listEl.innerHTML = `<li class="empty-state"><span class="material-symbols-rounded" aria-hidden="true">queue_music</span><strong>Esta lista está vacía</strong><span>Añadí canciones desde el reproductor.</span></li>`;
         } else {
-            const fragment = document.createDocumentFragment();
-            game.tracks.forEach((track, index) => {
-                fragment.appendChild(createTrackRow(track, () => {
-                    currentPlaylist = [...game.tracks];
-                    playTrack(index);
-                }, index));
-            });
-            listEl.appendChild(fragment);
+            pintarPistas(listEl, game);
         }
     }
 
@@ -1384,7 +1647,6 @@ function openGameView(game, isCustomPlaylist = false) {
 // =====================================================================
 function playTrack(index) {
     if (currentPlaylist.length === 0) return;
-    if (ytPlayer && ytPlayer.pauseVideo) ytPlayer.pauseVideo();
 
     const track = currentPlaylist[index];
     if (!track) return;
@@ -1439,7 +1701,7 @@ function playTrack(index) {
     if (recentlyPlayedPaths[0] !== track.path) {
         recentlyPlayedPaths = [track.path, ...recentlyPlayedPaths.filter(p => p !== track.path)].slice(0, 50);
         try {
-            localStorage.setItem('nintendoRecent', JSON.stringify(recentlyPlayedPaths));
+            localStorage.setItem('playMusicRecent', JSON.stringify(recentlyPlayedPaths));
         } catch (err) {
             console.warn('No se pudo guardar el historial:', err);
         }
@@ -1624,7 +1886,7 @@ document.getElementById('btn-share')?.addEventListener('click', async () => {
 // =====================================================================
 function createPlaylistCard(listName) {
     const card = document.createElement('div');
-    card.className = 'card nintendo-bouncy';
+    card.className = 'card bouncy';
     card.tabIndex = 0;
     card.setAttribute('role', 'button');
     card.setAttribute('aria-label', `Abrir la playlist ${listName}`);
@@ -1679,7 +1941,7 @@ function renderHomeCustomPlaylists() {
 
 function savePlaylists() {
     try {
-        localStorage.setItem('nintendoPlaylists', JSON.stringify(customPlaylists));
+        localStorage.setItem('playMusicPlaylists', JSON.stringify(customPlaylists));
     } catch (err) {
         showModal('Error', 'No se pudo guardar la playlist: el almacenamiento del navegador está lleno.');
         return;
@@ -1691,7 +1953,7 @@ function savePlaylists() {
 
 function savePlaylistCovers() {
     try {
-        localStorage.setItem('nintendoPlaylistCovers', JSON.stringify(playlistCovers));
+        localStorage.setItem('playMusicPlaylistCovers', JSON.stringify(playlistCovers));
     } catch (err) {
         showModal('Error', 'No se pudo guardar la portada: el almacenamiento del navegador está lleno.');
     }
@@ -1828,7 +2090,7 @@ document.getElementById('btn-add-to-playlist')?.addEventListener('click', () => 
         const fragment = document.createDocumentFragment();
         names.forEach(listName => {
             const li = document.createElement('li');
-            li.className = 'track-item nintendo-bouncy';
+            li.className = 'track-item bouncy';
             li.tabIndex = 0;
             li.setAttribute('role', 'button');
             li.setAttribute('aria-label', `Añadir a ${listName}`);
@@ -1863,7 +2125,7 @@ document.getElementById('export-btn')?.addEventListener('click', () => {
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = 'nintendo_playlists.json';
+    a.download = 'play_music_playlists.json';
     a.click();
     URL.revokeObjectURL(url);
     toast('Playlists exportadas.', 'success');
@@ -2091,7 +2353,7 @@ const themeMenu = document.getElementById('theme-menu');
 const themeItems = document.querySelectorAll('.dropdown-item');
 const selectedIconContainer = document.getElementById('selected-icon-container');
 
-const THEME_BG = { dark: '#000000', light: '#ffffff', gamecube: '#2b2b5c', sheikah: '#161514' };
+const THEME_BG = { dark: '#000000', light: '#ffffff', gamecube: '#2b2b5c', sheikah: '#061722', metroid: '#070d14', bayonetta: '#0a0203' };
 
 function applyTheme(theme, { persist = true } = {}) {
     document.documentElement.setAttribute('data-theme', theme);
