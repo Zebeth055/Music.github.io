@@ -1,0 +1,30 @@
+/* Tema claro */
+[data-theme="light"] {
+    --bg-color: #ffffff;
+    --surface-color: #f4f4f6;
+    --surface-light: #e6e6ea;
+    --surface-hover: #d8d8de;
+    --accent-red: #d1000f;
+    --accent-pink: #d4006b;
+    --color-verde: #2fbf2f;
+    --color-verde-claro: #6fd97a;
+    --text-main: #101014;
+    --text-muted: #5a5a63;
+    --text-on-accent: #ffffff;
+
+    --nav-bg: rgba(255, 255, 255, 0.86);
+    --nav-border: #e2e2e8;
+    --row-hover: rgba(10, 10, 20, 0.05);
+    --row-active: rgba(10, 10, 20, 0.09);
+    --input-border: var(--surface-light);
+
+    --color-enfasis: #d1000f;
+    --accent-glow: rgba(209, 0, 15, 0.45);
+
+    --shadow-sm: 0 2px 6px rgba(20, 20, 40, 0.08);
+    --shadow-md: 0 6px 18px rgba(20, 20, 40, 0.12);
+    --shadow-lg: 0 16px 40px rgba(20, 20, 40, 0.18);
+
+    color-scheme: light;
+}
+

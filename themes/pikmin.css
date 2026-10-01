@@ -1,0 +1,746 @@
+/* Tema Pikmin 3.
+   Cristal liquido: negro espacial con estrellas y una nebulosa en la esquina
+   superior derecha. Todo el cromado es traslucido —paneles, botones, estados
+   hover y activo— para que se vea el fondo a traves, con canto claro, reflejo
+   superior y reticula cian en la seleccion. Sin webfonts ni recursos externos. */
+[data-theme="pikmin"] {
+    --text-main: #fffa00;
+    --bg-color: #000000;
+    --surface-color: rgba(120, 170, 225, 0.1);
+    --surface-light: rgba(150, 195, 240, 0.09);
+    --surface-hover: rgba(111, 242, 255, 0.18);
+    --accent-red: #2f9fe8; /* azul del cristal activo */
+    --accent-pink: #6ff2ff; /* cian de las reticulas */
+    --color-verde: #33c500;
+    --color-verde-claro: #67caad;
+
+    --text-muted: #a8c4dd;
+    --text-on-accent: #ffffff;
+
+    --nav-bg: rgba(4, 8, 15, 0.72);
+    --nav-border: rgba(111, 242, 255, 0.22);
+    --row-hover: rgba(111, 242, 255, 0.14);
+    --row-active: rgba(47, 159, 232, 0.32);
+    --input-border: rgba(111, 242, 255, 0.35);
+
+    --color-enfasis: #6ff2ff;
+    --accent-glow: rgba(47, 159, 232, 0.55);
+
+
+
+    --pk-cian: #6ff2ff; /* reticulas de seleccion */
+    --pk-oro: #ffd968; /* titulos dibujados a mano */
+
+    /* Rellenos de cristal: se ve el fondo a traves. Imagen y color van
+       separados porque el atajo background pierde el color tras el degradado. */
+    --pk-vidrio: linear-gradient(160deg, rgba(150, 200, 245, 0.16) 0%, rgba(12, 26, 48, 0.34) 100%);
+    --pk-bot-img: radial-gradient(130% 100% at 26% 0%, rgba(255, 255, 255, 0.22) 0%, transparent 58%);
+    --pk-bot-col: rgba(255, 255, 255, 0.07);
+    --pk-bot-hov-img: radial-gradient(130% 100% at 26% 0%, rgba(255, 255, 255, 0.32) 0%, transparent 58%);
+    --pk-bot-hov-col: rgba(111, 242, 255, 0.16);
+    --pk-act-img: radial-gradient(130% 100% at 26% 0%, rgba(190, 235, 255, 0.5) 0%, transparent 60%), linear-gradient(160deg, rgba(47, 159, 232, 0.5) 0%, rgba(20, 90, 175, 0.34) 100%);
+    --pk-act-col: rgba(47, 159, 232, 0.18);
+    --pk-act-hov-img: radial-gradient(130% 100% at 26% 0%, rgba(214, 244, 255, 0.62) 0%, transparent 62%), linear-gradient(160deg, rgba(66, 175, 240, 0.62) 0%, rgba(26, 100, 190, 0.44) 100%);
+    --pk-act-hov-col: rgba(66, 175, 240, 0.24);
+    --pk-borde: rgba(255, 255, 255, 0.26); /* canto claro del cristal */
+    --pk-borde-hover: rgba(180, 240, 255, 0.55); /* el canto se enciende al pasar */
+    --pk-reflejo: inset 0 1px 0 rgba(255, 255, 255, 0.45); /* especular del borde superior */
+    --pk-frost: blur(30px) saturate(1.7); /* el frosting que difumina el fondo */
+    --pk-destello: radial-gradient(circle, rgba(255, 255, 255, 0.95) 0 1.5px, rgba(255, 255, 255, 0.3) 1.5px 2.5px, transparent 3px);
+        /* Titulos ambientales: fuente dibujada si el sistema la tiene */
+--font-display: "Segoe Print", "Bradley Hand", "Comic Sans MS", "Trebuchet MS", var(--font-family);
+    --text-main-shadow: 0 2px 4px rgba(0, 0, 0, 0.8), 0 0 8px rgba(255, 181, 0, 0.4);
+}
+
+/* Fondo base */
+[data-theme="pikmin"] body {
+    background-color: var(--bg-color);
+}
+
+/* Lienzo fijo que contiene la imagen sin romper los filtros */
+[data-theme="pikmin"] body::before {
+    content: "";
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background-image: url("/assets/pnf-404.png");
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    z-index: -1;
+}
+
+/* --- Tipografia: funcional sans-serif, ambiental en dorado con sombra --- */
+[data-theme="pikmin"] .section-title,
+[data-theme="pikmin"] .section-title-sm,
+[data-theme="pikmin"] .modal-content h3,
+[data-theme="pikmin"] .player-info h2 {
+    font-family: var(--font-display);
+    color: var(--pk-oro);
+    text-shadow: 2px 2px 0 rgba(3, 10, 20, 0.55), 0 0 20px rgba(255, 217, 104, 0.22);
+    letter-spacing: 0.01em;
+}
+
+/* Pequeña hoja dorada delante de cada titulo */
+[data-theme="pikmin"] .section-title::before {
+    content: "";
+    flex: none;
+    width: 9px;
+    height: 9px;
+    border-radius: 50% 0 50% 50%;
+    transform: rotate(45deg);
+    background: linear-gradient(135deg, var(--pk-oro), var(--color-verde));
+    box-shadow: 0 0 10px rgba(255, 217, 104, 0.5);
+}
+
+/* --- El destello: punto de luz en la esquina superior derecha --- */
+[data-theme="pikmin"] .modal-content::after,
+[data-theme="pikmin"] .dropdown-menu::after,
+[data-theme="pikmin"] #mini-player::after,
+[data-theme="pikmin"] .card-img-placeholder::after,
+[data-theme="pikmin"] .action-btn::after {
+    content: "";
+    position: absolute;
+    top: 7px;
+    right: 7px;
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: var(--pk-destello);
+    pointer-events: none;
+    }
+
+/* --- Paneles de acrilico: se ve el fondo a traves, con reflejo y borde --- */
+[data-theme="pikmin"] .modal-content {
+    position: relative;
+    background: var(--pk-vidrio);
+-webkit-backdrop-filter: var(--pk-frost);
+backdrop-filter: var(--pk-frost);
+    border: 1px solid var(--pk-borde);
+    border-radius: 20px;
+    box-shadow: var(--pk-reflejo), var(--shadow-lg);
+}
+
+/* Burbujas de luz dentro del panel, redondas como el estilo aero */
+[data-theme="pikmin"] .modal-content::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    pointer-events: none;
+    background-image:
+        radial-gradient(38px 38px at 82% 22%, rgba(255, 255, 255, 0.07), transparent 70%),
+        radial-gradient(24px 24px at 18% 76%, rgba(111, 242, 255, 0.06), transparent 70%),
+        radial-gradient(14px 14px at 64% 86%, rgba(255, 255, 255, 0.05), transparent 70%);
+}
+
+[data-theme="pikmin"] .modal-content > * { position: relative; z-index: 1; }
+
+[data-theme="pikmin"] .modal {
+    background: rgba(0, 2, 6, 0.66);
+}
+
+/* --- Botones: burbujas de cristal traslucido --- */
+[data-theme="pikmin"] .action-btn {
+    position: relative;
+    border-radius: var(--radius-pill);
+    border: 1px solid var(--pk-borde);
+    background-image: var(--pk-bot-img);
+    background-color: var(--pk-bot-col);
+-webkit-backdrop-filter: var(--pk-frost);
+backdrop-filter: var(--pk-frost);
+    color: #ffffff;
+    box-shadow: var(--pk-reflejo), 0 4px 14px rgba(0, 0, 0, 0.4);
+}
+
+/* Al quedar seleccionado el cristal se vuelve azul, pero nunca opaco */
+[data-theme="pikmin"] .action-btn.primary {
+    background-image: var(--pk-act-img);
+    background-color: var(--pk-act-col);
+    border-color: rgba(180, 235, 255, 0.5);
+    box-shadow: var(--pk-reflejo), 0 0 22px rgba(47, 159, 232, 0.45);
+}
+
+[data-theme="pikmin"] .action-btn.danger {
+    background: radial-gradient(130% 100% at 26% 0%, rgba(255, 255, 255, 0.28) 0%, transparent 58%), linear-gradient(160deg, rgba(224, 101, 90, 0.55) 0%, rgba(179, 38, 30, 0.45) 100%);
+}
+
+/* La base pinta los secundarios con --surface-light despues de los temas:
+   hace falta mas especificidad para dejar la burbuja traslucida. */
+[data-theme="pikmin"] .action-btn.secondary,
+[data-theme="pikmin"] .modal-menu .action-btn:not(.primary) {
+    background-image: var(--pk-bot-img);
+    background-color: var(--pk-bot-col);
+}
+
+/* Hover: la burbuja se aclara y el canto se enciende, sin volverse opaca */
+[data-theme="pikmin"] .action-btn:hover,
+[data-theme="pikmin"] .action-btn:focus-visible {
+    background-image: var(--pk-bot-hov-img);
+    background-color: var(--pk-bot-hov-col);
+    border-color: var(--pk-borde-hover);
+    box-shadow: var(--pk-reflejo), 0 0 18px rgba(111, 242, 255, 0.4);
+}
+
+[data-theme="pikmin"] .action-btn.primary:hover,
+[data-theme="pikmin"] .action-btn.primary:focus-visible {
+    background-image: var(--pk-act-hov-img);
+    background-color: var(--pk-act-hov-col);
+    border-color: rgba(200, 245, 255, 0.7);
+}
+
+/* Filas del menu lateral: capsulas oscuras con icono cian */
+[data-theme="pikmin"] .modal-menu .action-btn {
+    justify-content: flex-start;
+    gap: 10px;
+    font-weight: 500;
+    color: #ffffff;
+}
+
+[data-theme="pikmin"] .modal-menu .action-btn .material-symbols-rounded {
+    color: var(--pk-cian);
+    font-size: 18px;
+}
+
+
+/* --- Reticulas de seleccion: cuatro lineas cian flanqueando el elemento --- */
+[data-theme="pikmin"] .action-btn.primary::before,
+[data-theme="pikmin"] .dropdown-item.active::before {
+    content: "";
+    display: block;
+    position: absolute;
+    top: -5px;
+    bottom: -5px;
+    left: -5px;
+    right: -5px;
+    width: auto;
+    height: auto;
+    transform: none;
+    background-repeat: no-repeat;
+    pointer-events: none;
+    background-image:
+        linear-gradient(var(--pk-cian), var(--pk-cian)), linear-gradient(var(--pk-cian), var(--pk-cian)),
+        linear-gradient(var(--pk-cian), var(--pk-cian)), linear-gradient(var(--pk-cian), var(--pk-cian)),
+        linear-gradient(var(--pk-cian), var(--pk-cian)), linear-gradient(var(--pk-cian), var(--pk-cian)),
+        linear-gradient(var(--pk-cian), var(--pk-cian)), linear-gradient(var(--pk-cian), var(--pk-cian));
+    background-size:
+        16px 2px, 2px 16px,
+        16px 2px, 2px 16px,
+        16px 2px, 2px 16px,
+        16px 2px, 2px 16px;
+    background-position:
+        left top, left top,
+        right top, right top,
+        left bottom, left bottom,
+        right bottom, right bottom;
+}
+
+[data-theme="pikmin"] .action-btn.primary::before,
+[data-theme="pikmin"] .dropdown-item.active::before { border-radius: var(--radius-pill); }
+
+/* --- Navegacion: burbujas traslucidas sobre una capsula casi negra --- */
+[data-theme="pikmin"] .nav-item {
+    position: relative;
+    border-radius: var(--radius-pill);
+    background: rgba(255, 255, 255, 0.05);
+-webkit-backdrop-filter: var(--pk-frost);
+backdrop-filter: var(--pk-frost);
+    border: 1px solid rgba(255, 255, 255, 0.14);
+    color: var(--text-muted);
+    box-shadow: var(--pk-reflejo);
+}
+
+[data-theme="pikmin"] .nav-item:hover,
+[data-theme="pikmin"] .nav-item:focus-visible {
+    background-image: var(--pk-bot-hov-img);
+    background-color: var(--pk-bot-hov-col);
+    border-color: var(--pk-borde-hover);
+}
+
+[data-theme="pikmin"] .nav-item.active {
+    background-image: var(--pk-act-img);
+    background-color: var(--pk-act-col);
+    border-color: rgba(180, 235, 255, 0.5);
+    color: #ffffff;
+    box-shadow: var(--pk-reflejo), 0 0 20px rgba(47, 159, 232, 0.5);
+}
+
+[data-theme="pikmin"] .nav-item.active .material-symbols-rounded {
+    color: #ffffff;
+    filter: drop-shadow(0 0 6px rgba(111, 242, 255, 0.8));
+}
+
+/* La seccion activa tambien reacciona al raton, con un cristal mas claro */
+[data-theme="pikmin"] .nav-item.active:hover,
+[data-theme="pikmin"] .nav-item.active:focus-visible {
+    background-image: var(--pk-act-hov-img);
+    background-color: var(--pk-act-hov-col);
+    border-color: rgba(200, 245, 255, 0.75);
+    box-shadow: var(--pk-reflejo), 0 0 26px rgba(111, 242, 255, 0.6);
+}
+
+/* El indicador inferior de la base se reutiliza como soporte de las reticulas */
+[data-theme="pikmin"] .nav-item.active::after { border-radius: 0; }
+
+@media (max-width: 899px) {
+    [data-theme="pikmin"] #bottom-nav {
+        left: 10px;
+        right: 10px;
+        bottom: 8px;
+        width: auto;
+        border-radius: var(--radius-pill);
+        border: 1px solid rgba(111, 242, 255, 0.22);
+        background: rgba(2, 5, 10, 0.62);
+        backdrop-filter: var(--pk-frost);
+        -webkit-backdrop-filter: var(--pk-frost);
+        box-shadow: var(--pk-reflejo), 0 10px 30px rgba(0, 0, 0, 0.6);
+        padding: 6px 8px calc(6px + env(safe-area-inset-bottom, 0px));
+    }
+}
+
+/* En escritorio el nav es una columna a la izquierda: la base lo pinta con
+   --surface-color, asi que hay que devolverle el fondo oscuro de la barra. */
+@media (min-width: 900px) {
+    [data-theme="pikmin"] #bottom-nav {
+        background-color: var(--nav-bg);
+        border-color: var(--nav-border);
+    }
+}
+
+/* --- Tarjetas: burbujas de cristal; la seleccionada se encuadra en cian --- */
+[data-theme="pikmin"] .card-img-placeholder {
+    position: relative;
+    background: var(--pk-vidrio);
+    border: 1px solid var(--pk-borde);
+    box-shadow: var(--pk-reflejo), var(--shadow-sm);
+    width: 140px;
+    height: 140px;
+    background-color: var(--surface-light);
+    margin-bottom: 10px;
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    font-weight: 700;
+    font-size: 12px;
+    padding: 8px;
+    text-align: center;
+    transition: box-shadow var(--dur-base) var(--ease-out), transform var(--dur-base) var(--ease-out);
+}
+
+[data-theme="pikmin"] .card-img-placeholder.is-accent {
+    background: radial-gradient(130% 100% at 26% 0%, rgba(190, 235, 255, 0.4) 0%, transparent 60%), linear-gradient(160deg, rgba(47, 159, 232, 0.45) 0%, rgba(18, 62, 110, 0.38) 100%);
+    background: radial-gradient(130% 100% at 26% 0%, rgba(190, 235, 255, 0.4) 0%, transparent 60%), linear-gradient(160deg, rgba(47, 159, 232, 0.45) 0%, rgba(18, 62, 110, 0.38) 100%);
+    -webkit-backdrop-filter: var(--pk-frost);
+    backdrop-filter: var(--pk-frost);
+}
+
+
+[data-theme="pikmin"] .card:focus-visible .card-img-placeholder {
+    background: radial-gradient(130% 100% at 26% 0%, rgba(255, 255, 255, 0.28) 0%, transparent 58%), var(--pk-vidrio);
+    border-color: var(--pk-borde-hover);
+    box-shadow: var(--pk-reflejo), 0 0 0 1px var(--pk-cian), 0 0 24px -4px rgba(111, 242, 255, 0.5);
+}
+
+[data-theme="pikmin"] .card.is-playing .card-img-placeholder {
+    box-shadow: var(--pk-reflejo), 0 0 0 2px var(--pk-cian), 0 0 26px -4px rgba(111, 242, 255, 0.6);
+}
+
+[data-theme="pikmin"] .card-title { color: var(--text-muted); }
+[data-theme="pikmin"] .card:hover .card-title,
+[data-theme="pikmin"] .card.is-playing .card-title { color: #ffffff; }
+
+/* --- Pistas: fila translucida y burbuja azul al reproducir --- */
+[data-theme="pikmin"] .track-item {
+    border-radius: var(--radius-pill);
+    border-bottom-color: transparent;
+}
+
+[data-theme="pikmin"] .track-item:hover {
+    background: rgba(111, 242, 255, 0.16);
+    box-shadow: inset 0 0 0 1px rgba(111, 242, 255, 0.3);
+}
+
+[data-theme="pikmin"] .track-item.is-playing {
+    background: rgba(47, 159, 232, 0.3);
+    box-shadow: inset 0 0 0 1px rgba(111, 242, 255, 0.45);
+}
+
+/* --- Menus emergentes: cristal con borde claro --- */
+[data-theme="pikmin"] .dropdown-menu {
+    position: absolute;
+    background: radial-gradient(130% 100% at 26% 0%, rgba(190, 235, 255, 0.4) 0%, transparent 60%), linear-gradient(160deg, rgba(47, 159, 232, 0.45) 0%, rgba(18, 62, 110, 0.38) 100%);
+    -webkit-backdrop-filter: var(--pk-frost);
+    backdrop-filter: var(--pk-frost);
+    border: 1px solid var(--pk-borde);
+    border-radius: 18px;
+    box-shadow: var(--pk-reflejo), var(--shadow-md);
+}
+
+[data-theme="pikmin"] .dropdown-item {
+    position: relative;
+    border-radius: var(--radius-pill);
+    color: var(--text-main);
+}
+
+[data-theme="pikmin"] .dropdown-item:hover {
+    background: rgba(111, 242, 255, 0.18);
+    color: #ffffff;
+}
+
+[data-theme="pikmin"] .dropdown-item.active {
+    background-image: var(--pk-act-img);
+    background-color: var(--pk-act-col);
+    color: #ffffff;
+    font-weight: 600;
+}
+
+/* El check de la base lo lleva ::after, asi que la reticula va en ::before */
+[data-theme="pikmin"] .dropdown-item.active::after { color: #ffffff; }
+[data-theme="pikmin"] .dropdown-item.active .icon-wrapper { color: #ffffff; }
+
+[data-theme="pikmin"] .theme-menu-separator { background: rgba(111, 242, 255, 0.3); }
+
+[data-theme="pikmin"] .theme-swatch-pikmin {
+    background: radial-gradient(circle at 30% 28%, #7fd8ff, #2f9fe8 46%, #000308 78%, #ffd968);
+    box-shadow: 0 0 6px rgba(111, 242, 255, 0.6);
+}
+
+/* --- Reproductores: el mismo negro con nebulosa y estrellas --- */
+[data-theme="pikmin"] #mini-player {
+    background: radial-gradient(130% 100% at 26% 0%, rgba(190, 235, 255, 0.4) 0%, transparent 60%), linear-gradient(160deg, rgba(47, 159, 232, 0.45) 0%, rgba(18, 62, 110, 0.38) 100%);
+    -webkit-backdrop-filter: var(--pk-frost);
+    backdrop-filter: var(--pk-frost);
+    border-color: rgba(111, 242, 255, 0.28);
+    box-shadow: var(--pk-reflejo), 0 -6px 24px rgba(0, 0, 0, 0.5);
+}
+
+[data-theme="pikmin"] #full-player {
+    background:
+        radial-gradient(120% 90% at 25% 100%, rgba(0, 0, 0, 0) 35%, rgba(0, 0, 0, 0.85) 100%),
+        linear-gradient(rgba(0, 0, 0, 0.55), rgba(0, 0, 0, 0.55)),
+        url("/assets/pnf-404.png") center / cover no-repeat,
+        #000000;
+}
+
+[data-theme="pikmin"] .vinyl-record {
+    background: repeating-radial-gradient(#050a14, #050a14 4px, #0d1c30 5px, #0d1c30 6px);
+    box-shadow: inset 0 0 0 6px #01050c, 0 10px 40px rgba(0, 0, 0, 0.8), 0 0 60px -20px rgba(47, 159, 232, 0.6);
+}
+
+[data-theme="pikmin"] .vinyl-label {
+    border-color: rgba(111, 242, 255, 0.55);
+    box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.3), 0 0 34px rgba(47, 159, 232, 0.4);
+}
+
+/* --- Iconos 3D: esferas pulidas en los mandos principales --- */
+[data-theme="pikmin"] .main-controls .play-btn-large {
+    background: radial-gradient(circle at 34% 26%, rgba(225, 248, 255, 0.95) 0%, rgba(87, 182, 245, 0.85) 30%, rgba(47, 159, 232, 0.6) 58%, rgba(8, 30, 58, 0.5) 100%);
+    backdrop-filter: blur(10px) saturate(1.6);
+    -webkit-backdrop-filter: blur(10px) saturate(1.6);
+    border: 1px solid rgba(200, 245, 255, 0.6);
+    box-shadow: inset 0 3px 10px rgba(255, 255, 255, 0.6), 0 8px 22px rgba(0, 0, 0, 0.6);
+}
+
+[data-theme="pikmin"] .main-controls button:not(.play-btn-large):hover,
+[data-theme="pikmin"] .mini-controls button:hover {
+    background: rgba(111, 242, 255, 0.18);
+}
+
+[data-theme="pikmin"] .mini-controls button,
+[data-theme="pikmin"] .main-controls button:not(.play-btn-large) {
+    border-radius: 50%;
+}
+
+[data-theme="pikmin"] .main-controls button.is-active,
+[data-theme="pikmin"] .mini-controls button.is-active { color: var(--pk-cian); }
+
+/* --- Datos: barras translucidas sobre negro, con retícula de puntos --- */
+[data-theme="pikmin"] #visualizer {
+    background-color: #000000;
+    background-image:
+        radial-gradient(1px 1px at 50% 50%, rgba(111, 242, 255, 0.16) 0, transparent 100%),
+        radial-gradient(70% 50% at 100% 0%, rgba(46, 108, 224, 0.28), transparent 70%);
+    background-size: 26px 26px, auto;
+    border-color: rgba(111, 242, 255, 0.22);
+}
+
+[data-theme="pikmin"] input[type="range"].progress-bar-yt {
+    --slider-color: var(--pk-cian);
+    --slider-fill-image:
+        linear-gradient(to right, var(--pk-cian) 0 var(--fill), transparent var(--fill) 100%),
+        radial-gradient(1px 1px at 50% 50%, rgba(111, 242, 255, 0.5) 0, transparent 100%),
+        linear-gradient(180deg, rgba(30, 90, 160, 0.35), rgba(4, 14, 30, 0.35));
+}
+
+[data-theme="pikmin"] input[type="range"].progress-bar-yt::-webkit-slider-thumb {
+    background: radial-gradient(circle at 34% 28%, #ffffff 0%, var(--pk-cian) 45%, #0a2b4d 100%);
+    border: 1px solid rgba(255, 255, 255, 0.6);
+    box-shadow: 0 0 10px rgba(111, 242, 255, 0.7);
+}
+
+[data-theme="pikmin"] .load-progress-bar {
+    background-image: linear-gradient(90deg, var(--accent-red), var(--pk-cian));
+    box-shadow: 0 0 12px rgba(111, 242, 255, 0.5);
+}
+
+/* --- Avisos: burbuja de cristal con acento cian --- */
+[data-theme="pikmin"] .toast {
+    background: radial-gradient(130% 100% at 26% 0%, rgba(190, 235, 255, 0.4) 0%, transparent 60%), linear-gradient(160deg, rgba(47, 159, 232, 0.45) 0%, rgba(18, 62, 110, 0.38) 100%);
+    -webkit-backdrop-filter: var(--pk-frost);
+    backdrop-filter: var(--pk-frost);
+    border: 1px solid var(--pk-borde);
+    border-radius: 16px;
+    box-shadow: var(--pk-reflejo), var(--shadow-md);
+    color: #ffffff;
+}
+
+[data-theme="pikmin"] .toast.success .material-symbols-rounded { color: var(--color-verde); }
+[data-theme="pikmin"] .toast.info .material-symbols-rounded { color: var(--pk-cian); }
+
+/* --- Campos de texto: el mismo cristal --- */
+[data-theme="pikmin"] .modal-input {
+    background: rgba(255, 255, 255, 0.07);
+    border-radius: var(--radius-pill);
+    color: #ffffff;
+}
+
+[data-theme="pikmin"] .modal-input:focus {
+    background: rgba(111, 242, 255, 0.14);
+    border-color: var(--pk-borde-hover);
+    box-shadow: 0 0 0 3px rgba(111, 242, 255, 0.2);
+}
+
+@media (prefers-reduced-motion: reduce) {
+    [data-theme="pikmin"] .action-btn.primary::before,
+    [data-theme="pikmin"] .nav-item.active::after,
+    [data-theme="pikmin"] .dropdown-item.active::after { transition: none; }
+}
+
+
+/* --- El velo del dialogo no debe tapar el frosting del panel ---
+   .modal trae backdrop-filter propio y eso convierte al dialogo en
+   "backdrop root": dentro, el cristal del panel solo veria el velo negro.
+   Aqui se apaga el desenfoque del velo y se aligera, para que el panel
+   pueda difuminar de verdad la imagen del espacio que hay detras. */
+[data-theme="pikmin"] .modal {
+    background: rgba(0, 0, 0, 0.45);
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+}
+
+/* --- Selector de orden (A - Z, Z - A...) ---
+   El boton recibe el mismo cristal que el resto, con un velo oscuro detras
+   para que el dorado se lea siempre. La lista desplegable la dibuja el
+   sistema, asi que ahi no hay frosting posible: se usa fondo opaco y
+   texto claro, que es lo unico que garantiza contraste. */
+[data-theme="pikmin"] .select-sort {
+    background-color: rgba(4, 9, 18, 0.82);
+    -webkit-backdrop-filter: var(--pk-frost);
+    backdrop-filter: var(--pk-frost);
+    border: 1px solid var(--pk-borde);
+    box-shadow: var(--pk-reflejo);
+    color: #ffd968;
+    font-weight: 700;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.9);
+}
+
+[data-theme="pikmin"] .select-sort:hover,
+[data-theme="pikmin"] .select-sort:focus-visible {
+    background-color: rgba(8, 20, 36, 0.88);
+    border-color: var(--pk-borde-hover);
+    color: #ffffff;
+}
+
+[data-theme="pikmin"] .select-sort option {
+    background-color: #04090f;
+    color: #ffffff;
+    font-weight: 600;
+}
+
+[data-theme="pikmin"] .select-sort option:checked {
+    background-color: #123a63;
+    color: #6ff2ff;
+}
+
+/* ============================================================
+   TERMINAL "DAY 1" — SOLO en Mi Musica (#view-library)
+   Homenaje al bloc de notas / pantalla de transmision de Pikmin 3:
+   ventana holografica cian, marco de neon, esquinas biseladas,
+   lineas de escaneo, etiqueta del planeta y firma de Alph.
+   No toca ninguna otra vista ni ningun otro tema.
+   ============================================================ */
+[data-theme="pikmin"] #view-library {
+    position: relative;
+    margin: 16px 0 32px;
+    padding: 46px 20px 66px;
+    border: 1px solid rgba(111, 242, 255, 0.55);
+    border-radius: 16px;
+    background-color: rgba(5, 18, 34, 0.62);
+    background-image: linear-gradient(180deg, rgba(24, 84, 130, 0.5) 0%, rgba(5, 18, 34, 0.66) 100%);
+    box-shadow:
+        0 0 26px rgba(111, 242, 255, 0.28),
+        0 0 3px rgba(111, 242, 255, 0.6),
+        inset 0 0 44px rgba(111, 242, 255, 0.14),
+        inset 0 1px 0 rgba(214, 244, 255, 0.5);
+    -webkit-backdrop-filter: var(--pk-frost);
+    backdrop-filter: var(--pk-frost);
+    overflow: hidden;
+}
+
+/* Lineas de escaneo + trazo tecnologico + esquinas biseladas */
+[data-theme="pikmin"] #view-library::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: 2;
+    pointer-events: none;
+    border-radius: inherit;
+    background-image:
+        repeating-linear-gradient(0deg, rgba(111, 242, 255, 0.05) 0 1px, transparent 1px 3px),
+        linear-gradient(90deg, transparent 0 18%, rgba(111, 242, 255, 0.35) 50%, transparent 82%),
+        linear-gradient(var(--pk-cian), var(--pk-cian)),
+        linear-gradient(var(--pk-cian), var(--pk-cian)),
+        linear-gradient(var(--pk-cian), var(--pk-cian)),
+        linear-gradient(var(--pk-cian), var(--pk-cian)),
+        linear-gradient(var(--pk-cian), var(--pk-cian)),
+        linear-gradient(var(--pk-cian), var(--pk-cian)),
+        linear-gradient(var(--pk-cian), var(--pk-cian)),
+        linear-gradient(var(--pk-cian), var(--pk-cian));
+    background-repeat: repeat, no-repeat, no-repeat, no-repeat, no-repeat, no-repeat, no-repeat, no-repeat, no-repeat, no-repeat;
+    background-size: auto, 100% 1px, 22px 2px, 2px 22px, 22px 2px, 2px 22px, 22px 2px, 2px 22px, 22px 2px, 2px 22px;
+    background-position: 0 0, center 7px, left 10px top 10px, left 10px top 10px, right 10px top 10px, right 10px top 10px, left 10px bottom 10px, left 10px bottom 10px, right 10px bottom 10px, right 10px bottom 10px;
+    animation: pk-holo 3.5s ease-in-out infinite;
+}
+
+@keyframes pk-holo {
+    0%, 100% { opacity: 0.72; }
+    50% { opacity: 1; }
+}
+
+/* Etiqueta del dia y del planeta, arriba a la derecha */
+[data-theme="pikmin"] #view-library::after {
+    content: "DAY 1 · PNF-404";
+    position: absolute;
+    top: 12px;
+    right: 14px;
+    z-index: 3;
+    padding: 3px 10px;
+    border: 1px solid rgba(111, 242, 255, 0.5);
+    border-radius: 4px;
+    background-image: linear-gradient(180deg, rgba(47, 159, 232, 0.42), rgba(8, 26, 48, 0.6));
+    color: #e6fbff;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.16em;
+    text-shadow: 0 0 8px rgba(111, 242, 255, 0.85);
+}
+
+/* Entradas del diario: separador cian entre bloques */
+[data-theme="pikmin"] #view-library .library-block + .library-block {
+    margin-top: 22px;
+    padding-top: 22px;
+    border-top: 1px solid rgba(111, 242, 255, 0.18);
+}
+
+/* Titulares en modo terminal */
+[data-theme="pikmin"] #view-library .library-block h2,
+[data-theme="pikmin"] #view-library .library-block h3 {
+    color: var(--pk-cian);
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    text-shadow: 0 0 10px rgba(111, 242, 255, 0.55);
+}
+
+[data-theme="pikmin"] #view-library .library-block h2::before,
+[data-theme="pikmin"] #view-library .library-block h3::before {
+    content: "> ";
+    color: var(--pk-oro);
+    text-shadow: none;
+}
+
+/* Botones: teclas de neon */
+[data-theme="pikmin"] #view-library .upload-btn {
+    background-color: rgba(9, 26, 46, 0.7);
+    background-image: none;
+    border: 1px solid rgba(111, 242, 255, 0.45);
+    color: #dffaff;
+    box-shadow: inset 0 0 14px rgba(111, 242, 255, 0.12);
+    text-shadow: 0 0 6px rgba(111, 242, 255, 0.45);
+}
+
+[data-theme="pikmin"] #view-library .upload-btn:hover,
+[data-theme="pikmin"] #view-library .upload-btn:focus-visible {
+    background-color: rgba(47, 159, 232, 0.3);
+    border-color: var(--pk-borde-hover);
+    color: #ffffff;
+    box-shadow: 0 0 16px rgba(111, 242, 255, 0.45), inset 0 0 16px rgba(111, 242, 255, 0.22);
+}
+
+[data-theme="pikmin"] #view-library .danger-upload {
+    border-color: rgba(255, 130, 130, 0.5);
+    color: #ffdede;
+    box-shadow: inset 0 0 14px rgba(255, 90, 90, 0.14);
+}
+
+[data-theme="pikmin"] #view-library .danger-upload:hover {
+    background-color: rgba(140, 30, 30, 0.4);
+    border-color: rgba(255, 160, 160, 0.75);
+    box-shadow: 0 0 14px rgba(255, 90, 90, 0.4);
+}
+
+/* Carpetas locales: registros de datos */
+[data-theme="pikmin"] #view-library .folder-item {
+    border-left: 2px solid rgba(111, 242, 255, 0.5);
+    border-radius: 6px;
+    background-color: rgba(8, 24, 42, 0.45);
+    box-shadow: inset 0 0 12px rgba(111, 242, 255, 0.08);
+}
+
+[data-theme="pikmin"] #view-library .folder-item:hover {
+    background-color: rgba(47, 159, 232, 0.2);
+    border-left-color: var(--pk-cian);
+}
+
+[data-theme="pikmin"] #view-library .folder-item-icon { color: var(--pk-cian); }
+
+/* Pie holografico: firma de Alph (izq.) y boton "A" (der.) */
+[data-theme="pikmin"] #view-library .library-block:last-child::after {
+    content: "– Alph";
+    position: absolute;
+    left: 22px;
+    bottom: 18px;
+    z-index: 3;
+    color: var(--text-muted);
+    font-size: 12px;
+    letter-spacing: 0.06em;
+}
+
+[data-theme="pikmin"] #view-library .library-block:last-child::before {
+    content: "A";
+    position: absolute;
+    right: 18px;
+    bottom: 14px;
+    z-index: 3;
+    display: grid;
+    place-items: center;
+    width: 32px;
+    height: 32px;
+    border: 1px solid var(--pk-cian);
+    border-radius: 50%;
+    background-image: radial-gradient(circle at 35% 28%, rgba(214, 244, 255, 0.45), rgba(8, 26, 48, 0.72) 70%);
+    color: #ffffff;
+    font-size: 15px;
+    font-weight: 700;
+    box-shadow: 0 0 16px rgba(111, 242, 255, 0.55), inset 0 1px 0 rgba(255, 255, 255, 0.45);
+}
+
+@media (prefers-reduced-motion: reduce) {
+    [data-theme="pikmin"] #view-library::before { animation: none; }
+}

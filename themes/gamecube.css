@@ -1,0 +1,175 @@
+/* Tema GameCube: el menu de la consola como referente Y2K.
+   Negro absoluto, cubo de cristal translucido, reticula iluminada,
+   cubitos de memory card y paneles de matriz de puntos. */
+[data-theme="gamecube"] {
+    --bg-color: #000000; /* negro absoluto */
+    --surface-color: rgba(20, 34, 84, 0.42); /* superficies de cristal */
+    --surface-light: rgba(44, 70, 150, 0.4);
+    --surface-hover: rgba(72, 108, 220, 0.44);
+    --accent-red: #2f7bff; /* azul vibrante de la memory card */
+    --accent-pink: #a45cff; /* morado: el degradado va de azul a morado */
+    --color-verde: #2fe04f;
+    --color-verde-claro: #9dff8a;
+    --text-main: #ffffff; /* blanco puro, tipografia de palo seco */
+    --text-muted: #9fb4e8;
+    --text-on-accent: #00102e;
+
+    --nav-bg: rgba(4, 8, 24, 0.72);
+    --nav-border: rgba(122, 172, 255, 0.28);
+    --row-hover: rgba(60, 120, 255, 0.14);
+    --row-active: rgba(130, 80, 255, 0.22);
+
+    --color-enfasis: #2f7bff;
+    --gc-led: #c9ff3d; /* verde LED de los paneles de ajuste */
+
+    --grad-cubo: linear-gradient(135deg, #2f7bff 0%, #7a5cff 50%, #a45cff 100%);
+
+    --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.6);
+    --shadow-md: 0 8px 22px rgba(0, 0, 0, 0.7);
+    --shadow-lg: 0 20px 50px rgba(0, 0, 0, 0.85);
+
+    color-scheme: dark;
+}
+
+/* --- Retícula iluminada: el plano cartesiano del menú --- */
+[data-theme="gamecube"] body {
+    background-color: #000000;
+    background-image:
+        linear-gradient(rgba(96, 148, 255, 0.07) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(96, 148, 255, 0.07) 1px, transparent 1px),
+        radial-gradient(1000px 560px at 50% -6%, rgba(48, 84, 255, 0.16), transparent 68%);
+    background-size: 46px 46px, 46px 46px, auto;
+}
+
+/* Suelo en perspectiva: la malla de alambres que se pierde hacia el fondo */
+[data-theme="gamecube"] body::after {
+    content: "";
+    position: fixed;
+    left: -25%;
+    right: -25%;
+    bottom: -34%;
+    height: 64%;
+    z-index: -1;
+    pointer-events: none;
+    opacity: 0.5;
+    background-image:
+        linear-gradient(rgba(120, 170, 255, 0.16) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(120, 170, 255, 0.16) 1px, transparent 1px);
+    background-size: 60px 60px;
+    transform: perspective(300px) rotateX(66deg);
+    transform-origin: 50% 100%;
+    -webkit-mask-image: linear-gradient(to top, #000 0%, transparent 78%);
+    mask-image: linear-gradient(to top, #000 0%, transparent 78%);
+    animation: gc-suelo 12s linear infinite;
+}
+
+@keyframes gc-suelo {
+    to { background-position: 0 60px, 0 0; }
+}
+
+/* --- Memory card: cubitos de cristal azul ordenados en retícula --- */
+[data-theme="gamecube"] .card-grid { gap: 20px; }
+
+[data-theme="gamecube"] .card-img-placeholder {
+    position: relative;
+    background-color: rgba(22, 44, 112, 0.55);
+    background-image:
+        linear-gradient(135deg, rgba(150, 200, 255, 0.28) 0%, rgba(47, 123, 255, 0.1) 45%, rgba(164, 92, 255, 0.2) 100%),
+        repeating-linear-gradient(0deg, rgba(255, 255, 255, 0.045) 0 1px, transparent 1px 5px);
+    border: 1px solid rgba(140, 190, 255, 0.34);
+    box-shadow: inset 0 0 34px rgba(90, 150, 255, 0.24), var(--shadow-sm);
+}
+
+/* arista biselada del cubo */
+[data-theme="gamecube"] .card-img-placeholder::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    width: 12px;
+    background: linear-gradient(rgba(200, 225, 255, 0.4), transparent 70%);
+    opacity: 0.5;
+    pointer-events: none;
+}
+
+[data-theme="gamecube"] .card:hover,
+[data-theme="gamecube"] .card:focus-visible { transform: translateY(-2px); }
+
+/* --- Tipografía: palo seco en el menú, matriz de puntos en los paneles --- */
+[data-theme="gamecube"] .nav-item,
+[data-theme="gamecube"] .section-title {
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+}
+
+[data-theme="gamecube"] .section-title { color: #dbe7ff; }
+
+[data-theme="gamecube"] .modal-content h3 {
+    font-family: ui-monospace, "Courier New", "DejaVu Sans Mono", monospace;
+    text-transform: uppercase;
+    letter-spacing: 0.16em;
+    color: var(--gc-led);
+    text-shadow: 0 0 6px rgba(201, 255, 61, 0.75), 0 0 18px rgba(201, 255, 61, 0.35);
+    background-image: radial-gradient(circle, rgba(201, 255, 61, 0.18) 1px, transparent 1.5px);
+    background-size: 5px 5px;
+    padding: 8px 12px;
+    border: 1px solid rgba(201, 255, 61, 0.22);
+    border-radius: 4px;
+}
+
+/* Sugerencias de botones en el margen inferior: sans-serif y muy legible */
+[data-theme="gamecube"] .modal-content::after {
+    content: "A  Confirmar      B  Volver";
+    display: block;
+    margin-top: 16px;
+    padding-top: 10px;
+    border-top: 1px solid rgba(140, 190, 255, 0.18);
+    font-size: 11px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    text-align: right;
+}
+
+/* --- Paneles de cristal --- */
+[data-theme="gamecube"] .modal-content {
+    background: linear-gradient(160deg, rgba(24, 44, 110, 0.55), rgba(10, 16, 44, 0.62));
+    border: 1px solid rgba(130, 175, 255, 0.3);
+    box-shadow: var(--shadow-lg), inset 0 0 60px rgba(70, 120, 255, 0.1);
+}
+
+[data-theme="gamecube"] .nav-item.active { color: #ffffff; }
+
+[data-theme="gamecube"] .nav-item.active .material-symbols-rounded {
+    color: #7fb4ff;
+    filter: drop-shadow(0 0 8px rgba(80, 150, 255, 0.9));
+}
+
+[data-theme="gamecube"] .nav-item.active::after {
+    background: var(--grad-cubo);
+    box-shadow: 0 0 10px rgba(80, 140, 255, 0.8);
+}
+
+[data-theme="gamecube"] input[type="range"].progress-bar-yt {
+    --slider-color: var(--gc-led);
+}
+
+[data-theme="gamecube"] :focus-visible {
+    outline: 2px solid #4d9bff;
+    box-shadow: 0 0 12px rgba(77, 155, 255, 0.7);
+}
+
+[data-theme="gamecube"] ::-webkit-scrollbar { width: 10px; height: 10px; }
+
+[data-theme="gamecube"] ::-webkit-scrollbar-track { background: rgba(10, 20, 50, 0.6); }
+
+[data-theme="gamecube"] ::-webkit-scrollbar-thumb {
+    background: linear-gradient(180deg, rgba(90, 150, 255, 0.6), rgba(130, 80, 230, 0.55));
+    border-radius: 5px;
+}
+
+[data-theme="gamecube"] ::-webkit-scrollbar-thumb:hover {
+    background: linear-gradient(180deg, #4d9bff, #a45cff);
+}
+

@@ -1,14 +1,3 @@
-// =====================================================================
-//  Play Music — lógica de la aplicación
-// =====================================================================
-
-// =====================================================================
-//  MIGRACION DESDE "NINTENDO MUSIC"
-//  La app se renombro a Play Music. Las claves de localStorage y la base de
-//  datos tambien, pero antes de renombrarlas se copian los datos del usuario
-//  para que no pierda su biblioteca, playlists, favoritos ni volumen.
-//  Es idempotente: si no quedan datos antiguos, no hace nada.
-// =====================================================================
 const CLAVES_LEGADAS = {
     nintendoPlaylists: 'playMusicPlaylists',
     nintendoPlaylistCovers: 'playMusicPlaylistCovers',
@@ -359,10 +348,11 @@ const DB_LEGADA = 'NintendoMusicDB';
 
 function abrirDB(nombre) {
     return new Promise((res, rej) => {
-        const req = indexedDB.open(nombre, 1);
+        const req = indexedDB.open(nombre, 2);
         req.onupgradeneeded = e => {
             const db = e.target.result;
             if (!db.objectStoreNames.contains('files')) db.createObjectStore('files', { keyPath: 'path' });
+            if (!db.objectStoreNames.contains('temas')) db.createObjectStore('temas', { keyPath: 'id' });
         };
         req.onsuccess = () => res(req.result);
         req.onerror = () => rej(req.error);
@@ -1931,7 +1921,7 @@ function renderHomeCustomPlaylists() {
 
     const names = Object.keys(customPlaylists);
     if (names.length === 0) {
-        grid.innerHTML = `<p class="empty-state"><span class="material-symbols-rounded" aria-hidden="true">queue_music</span><strong>Aún no tenés playlists</strong><span>Creá una desde «My Music».</span></p>`;
+        grid.innerHTML = `<p class="empty-state"><span class="material-symbols-rounded" aria-hidden="true">queue_music</span><strong>Aún no tienes playlists</strong><span>Creá una desde «My Music».</span></p>`;
         return;
     }
     const fragment = document.createDocumentFragment();
@@ -2085,7 +2075,7 @@ document.getElementById('btn-add-to-playlist')?.addEventListener('click', () => 
 
     const names = Object.keys(customPlaylists);
     if (names.length === 0) {
-        listUI.innerHTML = `<li class="empty-state"><span class="material-symbols-rounded" aria-hidden="true">playlist_add</span><strong>No tenés playlists</strong><span>Creá una desde «My Music».</span></li>`;
+        listUI.innerHTML = `<li class="empty-state"><span class="material-symbols-rounded" aria-hidden="true">playlist_add</span><strong>No tenés playlists</strong><span>Añade una desde «My Music».</span></li>`;
     } else {
         const fragment = document.createDocumentFragment();
         names.forEach(listName => {
@@ -2316,7 +2306,8 @@ function setupLocalSearch(inputId, gridId) {
     const empty = document.createElement('p');
     empty.className = 'empty-state';
     empty.setAttribute('data-search-empty', '');
-    empty.hidden = true;
+    // con `hidden` solo no alcanza: `.empty-state` define `display` y lo anula
+    setHidden(empty, true);
     empty.innerHTML = '<span class="material-symbols-rounded" aria-hidden="true">search_off</span><strong>Sin coincidencias</strong><span>Probá con otro término.</span>';
     grid.appendChild(empty);
 
@@ -2331,7 +2322,7 @@ function setupLocalSearch(inputId, gridId) {
             if (match) visible++;
         });
         // Solo tiene sentido mostrarlo si la grilla realmente tiene contenido
-        empty.hidden = !(cards.length > 0 && term !== '' && visible === 0);
+        setHidden(empty, !(cards.length > 0 && term !== '' && visible === 0));
     }, 150));
 }
 
@@ -2347,33 +2338,172 @@ setInterval(() => {
 
 // =====================================================================
 //  DROPDOWN DE TEMAS
+//  Los temas integrados viven en archivos separados (themes/*.css) y solo se
+//  activa una hoja a la vez. Ademas se pueden cargar temas propios desde el
+//  disco: el CSS se guarda en IndexedDB y se inyecta en una capa final
+//  (#capa-tema-usuario) para que gane sin pelear especificidad.
 // =====================================================================
 const themeTrigger = document.getElementById('theme-trigger');
 const themeMenu = document.getElementById('theme-menu');
-const themeItems = document.querySelectorAll('.dropdown-item');
 const selectedIconContainer = document.getElementById('selected-icon-container');
+const capaTemaUsuario = document.getElementById('capa-tema-usuario');
+const temaInput = document.getElementById('cargar-tema-input');
 
-const THEME_BG = { dark: '#000000', light: '#ffffff', gamecube: '#2b2b5c', sheikah: '#061722', metroid: '#070d14', bayonetta: '#0a0203' };
+const THEME_BG = { dark: '#000000', light: '#ffffff', gamecube: '#2b2b5c', sheikah: '#061722', metroid: '#070d14', bayonetta: '#0a0203', pikmin: '#000000' };
 
-function applyTheme(theme, { persist = true } = {}) {
-    document.documentElement.setAttribute('data-theme', theme);
-    if (persist) {
-        try { localStorage.setItem('app-theme', theme); } catch (err) { /* cuota llena */ }
-    }
+// Temas cargados por el usuario en esta sesion (persistidos en IndexedDB).
+let temasUsuario = [];
 
-    themeItems.forEach(item => {
+function aplicarCapaUsuario(theme) {
+    if (!capaTemaUsuario) return;
+    const tema = temasUsuario.find(t => t.id === theme);
+    capaTemaUsuario.textContent = tema ? tema.css : '';
+}
+
+function colorDeFondoActual() {
+    const cs = getComputedStyle(document.documentElement);
+    const bg = cs.getPropertyValue('--bg-color').trim();
+    return bg || '#000000';
+}
+
+function marcarOpcionActiva(theme) {
+    if (!themeMenu) return;
+    themeMenu.querySelectorAll('.dropdown-item[data-value]').forEach(item => {
         const isActive = item.dataset.value === theme;
         item.classList.toggle('active', isActive);
         item.setAttribute('aria-checked', String(isActive));
-        if (isActive && selectedIconContainer) {
+        if (isActive && selectedIconContainer && item.querySelector('.icon-wrapper')) {
             selectedIconContainer.innerHTML = item.querySelector('.icon-wrapper').innerHTML;
         }
     });
+}
 
+function actualizarMetaColor() {
     const themeColorMeta = document.querySelector('meta[name="theme-color"]');
-    if (themeColorMeta && THEME_BG[theme]) {
-        themeColorMeta.setAttribute('content', THEME_BG[theme]);
+    if (themeColorMeta) themeColorMeta.setAttribute('content', colorDeFondoActual());
+}
+
+function refrescarSelectsNativos() {
+    // Chromium cachea el fondo nativo (campo) de <select> en el primer pintado y no lo
+    // recalcula cuando cambia el tema en caliente. Forzar un reflow recreando el widget
+    // (display:none -> repintar) hace que el navegador vuelva a resolver background-color
+    // y asi el cristal del tema (translucido + backdrop-filter) se aplica de verdad.
+    document.querySelectorAll('select.select-sort').forEach((sel) => {
+        const display = sel.style.display;
+        sel.style.display = 'none';
+        void sel.offsetHeight;
+        sel.style.display = display;
+    });
+}
+
+function applyTheme(theme, { persist = true } = {}) {
+    document.documentElement.setAttribute('data-theme', theme);
+    aplicarCapaUsuario(theme);
+    if (persist) {
+        try { localStorage.setItem('app-theme', theme); } catch (err) { /* cuota llena */ }
     }
+    marcarOpcionActiva(theme);
+    actualizarMetaColor();
+    requestAnimationFrame(refrescarSelectsNativos);
+}
+
+function obtenerTemasIndexedDB() {
+    return new Promise((res, rej) => {
+        openDB().then(db => {
+            const rq = db.transaction('temas', 'readonly').objectStore('temas').getAll();
+            rq.onsuccess = () => { db.close(); res(rq.result || []); };
+            rq.onerror = () => { db.close(); rej(rq.error); };
+        }).catch(rej);
+    });
+}
+
+function guardarTemaIndexedDB(tema) {
+    return new Promise((res, rej) => {
+        openDB().then(db => {
+            const rq = db.transaction('temas', 'readwrite').objectStore('temas').put(tema);
+            rq.onsuccess = () => { db.close(); res(); };
+            rq.onerror = () => { db.close(); rej(rq.error); };
+        }).catch(rej);
+    });
+}
+
+function borrarTemaIndexedDB(id) {
+    return new Promise((res, rej) => {
+        openDB().then(db => {
+            const rq = db.transaction('temas', 'readwrite').objectStore('temas').delete(id);
+            rq.onsuccess = () => { db.close(); res(); };
+            rq.onerror = () => { db.close(); rej(rq.error); };
+        }).catch(rej);
+    });
+}
+
+function renderTemasUsuario() {
+    if (!themeMenu) return;
+    themeMenu.querySelectorAll('[data-tema-usuario]').forEach(li => li.remove());
+    const separador = themeMenu.querySelector('.theme-menu-separator');
+    temasUsuario.forEach(tema => {
+        const li = document.createElement('li');
+        li.setAttribute('role', 'none');
+        li.dataset.temaUsuario = tema.id;
+
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'dropdown-item';
+        btn.dataset.value = tema.id;
+        btn.setAttribute('role', 'menuitemradio');
+        btn.setAttribute('aria-checked', 'false');
+        btn.innerHTML = '<span class="icon-wrapper"><span class="material-symbols-rounded" aria-hidden="true">palette</span></span>';
+        const label = document.createElement('span');
+        label.textContent = tema.nombre;
+        btn.appendChild(label);
+
+        const quitar = document.createElement('button');
+        quitar.type = 'button';
+        quitar.className = 'tema-quitar';
+        quitar.dataset.quitarTema = tema.id;
+        quitar.setAttribute('aria-label', 'Quitar tema ' + tema.nombre);
+        quitar.title = 'Quitar tema';
+        quitar.innerHTML = '<span class="material-symbols-rounded" aria-hidden="true">close</span>';
+
+        li.appendChild(btn);
+        li.appendChild(quitar);
+        themeMenu.insertBefore(li, separador);
+    });
+    marcarOpcionActiva(document.documentElement.dataset.theme);
+}
+
+async function cargarTemaDesdeArchivo(file) {
+    let css;
+    try { css = await file.text(); } catch (err) { return; }
+    if (!css.trim()) return;
+
+    const nombre = (file.name || 'Tema personalizado').replace(/\.(css|txt)$/i, '');
+    const base = 'usuario-' + nombre.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
+    const id = base + '-' + Math.random().toString(36).slice(2, 7);
+
+    // Si ya existe un tema con el mismo nombre, lo reemplaza sin duplicarlo.
+    const previo = temasUsuario.find(t => t.nombre === nombre);
+    if (previo) {
+        try { await borrarTemaIndexedDB(previo.id); } catch (err) { /* sin importancia */ }
+        temasUsuario = temasUsuario.filter(t => t.id !== previo.id);
+    }
+
+    const tema = { id, nombre, css };
+    try { await guardarTemaIndexedDB(tema); } catch (err) { return; }
+    temasUsuario.push(tema);
+    renderTemasUsuario();
+    applyTheme(id);
+}
+
+async function quitarTema(id) {
+    const tema = temasUsuario.find(t => t.id === id);
+    if (!tema) return;
+    showConfirmModal(`¿Quitar el tema «${tema.nombre}»?`, 'Se borra solo de la lista; tu archivo original queda intacto.', async () => {
+        try { await borrarTemaIndexedDB(id); } catch (err) { /* sin importancia */ }
+        temasUsuario = temasUsuario.filter(t => t.id !== id);
+        if (document.documentElement.dataset.theme === id) applyTheme('dark');
+        renderTemasUsuario();
+    });
 }
 
 function setThemeMenu(open) {
@@ -2382,9 +2512,7 @@ function setThemeMenu(open) {
     themeTrigger.setAttribute('aria-expanded', String(open));
 }
 
-if (themeTrigger && themeMenu && themeItems.length && selectedIconContainer) {
-    applyTheme(localStorage.getItem('app-theme') || 'dark', { persist: false });
-
+if (themeTrigger && themeMenu) {
     themeTrigger.addEventListener('click', (e) => {
         e.stopPropagation();
         setThemeMenu(!themeMenu.classList.contains('open'));
@@ -2395,11 +2523,37 @@ if (themeTrigger && themeMenu && themeItems.length && selectedIconContainer) {
         if (!themeTrigger.contains(e.target) && !themeMenu.contains(e.target)) setThemeMenu(false);
     });
 
-    themeItems.forEach(item => {
-        item.addEventListener('click', () => {
+    themeMenu.addEventListener('click', (e) => {
+        const item = e.target.closest('.dropdown-item');
+        if (item && item.dataset.value) {
             applyTheme(item.dataset.value);
             setThemeMenu(false);
             themeTrigger.focus();
+            return;
+        }
+        if (e.target.closest('[data-load-theme]')) {
+            temaInput && temaInput.click();
+            return;
+        }
+        const quitar = e.target.closest('[data-quitar-tema]');
+        if (quitar) quitarTema(quitar.dataset.quitarTema);
+    });
+
+    if (temaInput) {
+        temaInput.addEventListener('change', () => {
+            const file = temaInput.files && temaInput.files[0];
+            temaInput.value = '';
+            if (file) cargarTemaDesdeArchivo(file);
         });
+    }
+
+    // Carga los temas de usuario ANTES de aplicar el guardado, para que un tema
+    // persistido reaparezca sin parpadeos.
+    obtenerTemasIndexedDB().then(lista => {
+        temasUsuario = lista || [];
+        renderTemasUsuario();
+        applyTheme(localStorage.getItem('app-theme') || 'dark', { persist: false });
+    }).catch(() => {
+        applyTheme(localStorage.getItem('app-theme') || 'dark', { persist: false });
     });
 }

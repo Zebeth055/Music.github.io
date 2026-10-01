@@ -1,0 +1,495 @@
+/* Tema Sheikah: la Piedra Sheikah.
+   Fondo holografico azul con cuadricula y curvas de nivel, marco fisico de
+   bronce en las esquinas, esquinas de esquinas Selected con flechas y cajas
+   negras con borde blanco para los menus. */
+[data-theme="sheikah"] {
+    --bg-color: #061722;
+    --surface-color: rgba(14, 44, 82, 0.78);
+    --surface-light: rgba(24, 66, 116, 0.72);
+    --surface-hover: rgba(38, 96, 158, 0.78);
+    --accent-red: #35b6e8; /* azul de la Piedra Sheikah */
+    --accent-pink: #9fe4f7;
+    --color-verde: #4fbf3f;
+    --color-verde-claro: #9fe08f;
+    --text-main: #ffffff;
+    --text-muted: #a9c8de;
+    --text-on-accent: #04141c;
+
+    --nav-bg: rgba(6, 23, 34, 0.88);
+    --nav-border: rgba(53, 182, 232, 0.25);
+    --row-hover: rgba(53, 182, 232, 0.1);
+    --row-active: rgba(53, 182, 232, 0.2);
+
+    --color-enfasis: #35b6e8;
+    --accent-glow: rgba(53, 182, 232, 0.55);
+
+    --sk-bronce: #b08d4a; /* bronce del marco fisico */
+    --sk-bronce-claro: #e2c489;
+    --sk-borde: #ffffff; /* los menus son cajas negras con borde blanco */
+    --sk-linea: rgba(53, 182, 232, 0.35); /* lineas de la cuadricula */
+    --triforce: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 90'%3E%3Cpath fill='%23ffffff' d='M50 6 L71 45 L29 45 Z M29 45 L50 84 L8 84 Z M71 45 L92 84 L50 84 Z'/%3E%3C/svg%3E");
+
+    color-scheme: dark;
+}
+
+/* Fondo holografico: cuadricula fina + curvas de nivel + resplandor superior */
+[data-theme="sheikah"] body {
+    background-color: var(--bg-color);
+    background-image:
+        radial-gradient(circle at 22% 30%, transparent 0 118px, var(--sk-linea) 118px 119px, transparent 119px 168px, rgba(53, 182, 232, 0.22) 168px 169px, transparent 169px),
+        radial-gradient(circle at 78% 68%, transparent 0 96px, var(--sk-linea) 96px 97px, transparent 97px 148px, rgba(53, 182, 232, 0.2) 148px 149px, transparent 149px),
+        linear-gradient(var(--sk-linea) 1px, transparent 1px),
+        linear-gradient(90deg, var(--sk-linea) 1px, transparent 1px),
+        radial-gradient(1100px 620px at 50% -8%, rgba(48, 120, 255, 0.18), transparent 68%);
+    background-size: auto, auto, 44px 44px, 44px 44px, auto;
+}
+
+/* --- Marco fisico de la Piedra Sheikah: bordes de bronce en las esquinas --- */
+.sheikah-marco,
+.sheikah-hud,
+
+[data-theme="sheikah"] .sheikah-marco {
+    display: block;
+    position: fixed;
+    inset: 0;
+    z-index: 3;
+    pointer-events: none;
+    border: 1px solid rgba(176, 141, 74, 0.28);
+}
+
+[data-theme="sheikah"] .sheikah-esquina {
+    position: absolute;
+    width: 86px;
+    height: 86px;
+    border-style: solid;
+    border-color: var(--sk-bronce);
+    box-shadow: 0 0 12px rgba(176, 141, 74, 0.25);
+}
+
+/* el relieve curvo: una segunda linea mas fina por dentro */
+[data-theme="sheikah"] .sheikah-esquina::before {
+    content: "";
+    position: absolute;
+    inset: 7px;
+    border: 1px solid rgba(226, 196, 137, 0.45);
+    border-radius: inherit;
+}
+
+[data-theme="sheikah"] .e1 {
+    top: 7px;
+    left: 7px;
+    border-width: 3px 0 0 3px;
+    border-radius: 20px 0 0 0;
+}
+
+[data-theme="sheikah"] .e2 {
+    top: 7px;
+    right: 7px;
+    border-width: 3px 3px 0 0;
+    border-radius: 0 20px 0 0;
+}
+
+[data-theme="sheikah"] .e3 {
+    bottom: 7px;
+    left: 7px;
+    border-width: 0 0 3px 3px;
+    border-radius: 0 0 0 20px;
+}
+
+[data-theme="sheikah"] .e4 {
+    bottom: 7px;
+    right: 7px;
+    border-width: 0 3px 3px 0;
+    border-radius: 0 0 20px 0;
+}
+
+/* Triforce dorada en la esquina, como el indicador del entorno */
+[data-theme="sheikah"] .sheikah-triforce {
+    display: block;
+    position: fixed;
+    left: 20px;
+    bottom: 20px;
+    width: 30px;
+    height: 27px;
+    z-index: 3;
+    pointer-events: none;
+    background-image: var(--triforce);
+    background-repeat: no-repeat;
+    background-size: contain;
+    opacity: 0.75;
+    filter: drop-shadow(0 0 6px rgba(226, 196, 137, 0.6));
+}
+
+/* --- HUD: corazones, indicador de efecto de tres niveles y rupia --- */
+[data-theme="sheikah"] .sheikah-hud {
+    display: flex;
+    align-items: center;
+    gap: 3px;
+    position: fixed;
+    top: 16px;
+    right: 20px;
+    z-index: 4;
+    pointer-events: none;
+}
+
+[data-theme="sheikah"] .sheikah-alive {
+    width: 11px;
+    height: 11px;
+    background: #d33a3a;
+    box-shadow: 0 0 6px rgba(211, 58, 58, 0.7);
+    clip-path: polygon(50% 100%, 0 38%, 0 12%, 25% 0, 50% 18%, 75% 0, 100% 12%, 100% 38%);
+}
+
+[data-theme="sheikah"] .sheikah-efecto {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    margin-left: 10px;
+    padding: 3px 4px;
+    border: 1px solid rgba(53, 182, 232, 0.5);
+}
+
+[data-theme="sheikah"] .sheikah-efecto i {
+    display: block;
+    width: 14px;
+    height: 3px;
+    background: var(--accent-red);
+    box-shadow: 0 0 6px rgba(53, 182, 232, 0.8);
+}
+
+[data-theme="sheikah"] .sheikah-rupia {
+    width: 11px;
+    height: 11px;
+    margin-left: 12px;
+    background: #4fbf3f;
+    transform: rotate(45deg);
+    box-shadow: 0 0 9px rgba(79, 191, 63, 0.85);
+}
+
+/* --- Seleccion: esquinas reticulares, como el elemento activo de las runas --- */
+[data-theme="sheikah"] :focus-visible {
+    outline: none;
+}
+
+[data-theme="sheikah"] .card:focus-visible,
+[data-theme="sheikah"] .card.is-playing {
+    outline: 3px solid var(--accent-red);
+    outline-offset: 2px;
+    border-radius: var(--radius-md);
+}
+
+/* Las cuatro esquinas: dos en la tarjeta y dos en la imagen */
+[data-theme="sheikah"] .card::before,
+[data-theme="sheikah"] .card::after,
+[data-theme="sheikah"] .card-img-placeholder::before,
+[data-theme="sheikah"] .card-img-placeholder::after {
+    content: "";
+    position: absolute;
+    width: 13px;
+    height: 13px;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity var(--dur-fast) var(--ease-out);
+    border-color: var(--accent-red);
+    border-style: solid;
+    border-width: 0;
+}
+
+[data-theme="sheikah"] .card { position: relative; }
+
+[data-theme="sheikah"] .card::before {
+    top: -2px;
+    left: -2px;
+    border-top-width: 2px;
+    border-left-width: 2px;
+}
+
+[data-theme="sheikah"] .card::after {
+    bottom: -2px;
+    right: -2px;
+    border-bottom-width: 2px;
+    border-right-width: 2px;
+}
+
+[data-theme="sheikah"] .card-img-placeholder::before {
+    top: 4px;
+    right: 4px;
+    border-top-width: 2px;
+    border-right-width: 2px;
+}
+
+[data-theme="sheikah"] .card-img-placeholder::after {
+    bottom: 4px;
+    left: 4px;
+    border-bottom-width: 2px;
+    border-left-width: 2px;
+}
+
+[data-theme="sheikah"] .card:hover::before,
+[data-theme="sheikah"] .card:hover::after,
+[data-theme="sheikah"] .card:hover .card-img-placeholder::before,
+[data-theme="sheikah"] .card:hover .card-img-placeholder::after,
+[data-theme="sheikah"] .card:focus-visible::before,
+[data-theme="sheikah"] .card:focus-visible::after,
+[data-theme="sheikah"] .card:focus-visible .card-img-placeholder::before,
+[data-theme="sheikah"] .card:focus-visible .card-img-placeholder::after,
+[data-theme="sheikah"] .card.is-playing::before,
+[data-theme="sheikah"] .card.is-playing::after,
+[data-theme="sheikah"] .card.is-playing .card-img-placeholder::before,
+[data-theme="sheikah"] .card.is-playing .card-img-placeholder::after {
+    opacity: 1;
+}
+
+/* --- La fila de runas: el menu de abajo como recuadros con borde --- */
+[data-theme="sheikah"] .nav-item {
+    border: 1px solid rgba(53, 182, 232, 0.3);
+    border-radius: 6px;
+    background: rgba(10, 34, 58, 0.5);
+}
+
+[data-theme="sheikah"] .nav-item.active {
+    border: 2px solid var(--accent-red);
+    background: rgba(53, 182, 232, 0.16);
+    box-shadow: 0 0 14px rgba(53, 182, 232, 0.5);
+}
+
+[data-theme="sheikah"] .nav-item.active::after { display: none; }
+
+[data-theme="sheikah"] .nav-item.active .material-symbols-rounded {
+    color: var(--accent-red);
+    filter: drop-shadow(0 0 6px rgba(53, 182, 232, 0.9));
+}
+
+/* --- Menus emergentes: caja negra con borde blanco --- */
+[data-theme="sheikah"] .dropdown-menu {
+    background: rgba(0, 0, 0, 0.92);
+    border: 1px solid var(--sk-borde);
+    border-radius: 2px;
+    box-shadow: 0 0 0 1px rgba(53, 182, 232, 0.25), var(--shadow-md);
+}
+
+[data-theme="sheikah"] .dropdown-item {
+    border-radius: 0;
+    color: #e8f4fb;
+    border-left: 3px solid transparent;
+}
+
+[data-theme="sheikah"] .dropdown-item:hover {
+    background: rgba(53, 182, 232, 0.16);
+    color: #ffffff;
+}
+
+/* La opcion elegida se marca con la barra azul, como un interruptor encendido */
+[data-theme="sheikah"] .dropdown-item.active {
+    background: transparent;
+    color: #ffffff;
+    border-left-color: var(--accent-red);
+    font-weight: 600;
+}
+
+[data-theme="sheikah"] .theme-swatch {
+    border: 1px solid rgba(255, 255, 255, 0.5);
+    border-radius: 2px;
+}
+
+/* --- Paneles: la Piedra Sheikah como pantalla de la Piedra --- */
+[data-theme="sheikah"] .modal {
+    background: rgba(2, 10, 20, 0.66);
+}
+
+[data-theme="sheikah"] .modal-content {
+    position: relative;
+    background:
+        radial-gradient(circle at 26% 24%, transparent 0 84px, var(--sk-linea) 84px 85px, transparent 85px 128px, rgba(53, 182, 232, 0.2) 128px 129px, transparent 129px),
+        linear-gradient(160deg, rgba(16, 52, 96, 0.9), rgba(6, 20, 38, 0.94));
+    border: 1px solid var(--sk-bronce);
+    border-radius: 4px;
+    box-shadow: var(--shadow-lg), inset 0 0 50px rgba(53, 182, 232, 0.08);
+}
+
+/* Esquina de bronce del panel */
+[data-theme="sheikah"] .modal-content::before {
+    content: "";
+    position: absolute;
+    top: 6px;
+    left: 6px;
+    width: 34px;
+    height: 34px;
+    border-top: 2px solid var(--sk-bronce-claro);
+    border-left: 2px solid var(--sk-bronce-claro);
+    border-radius: 12px 0 0 0;
+    pointer-events: none;
+}
+
+/* Titulo centrado con los indicadores L y R a los lados */
+[data-theme="sheikah"] .modal-content h3 {
+    color: #bfe9fb;
+    font-weight: 600;
+    letter-spacing: 0.03em;
+    text-shadow: 0 0 10px rgba(53, 182, 232, 0.55);
+    margin-top: 4px;
+}
+
+[data-theme="sheikah"] .modal-content h3::before,
+[data-theme="sheikah"] .modal-content h3::after {
+    display: inline-block;
+    margin: 0 12px;
+    padding: 1px 7px;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    color: #ffffff;
+    background: rgba(53, 182, 232, 0.28);
+    border: 1px solid rgba(53, 182, 232, 0.7);
+    border-radius: 2px;
+    vertical-align: middle;
+}
+
+[data-theme="sheikah"] .modal-content h3::before { content: "L"; }
+[data-theme="sheikah"] .modal-content h3::after { content: "R"; }
+
+[data-theme="sheikah"] .modal-subtitle {
+    color: var(--text-muted);
+    font-size: 13px;
+    line-height: 1.6;
+}
+
+/* --- Cuadro de dialogo: botones rectangulares apilados --- */
+[data-theme="sheikah"] #confirm-modal .modal-content {
+    background: rgba(0, 0, 0, 0.9);
+    border-color: var(--sk-borde);
+    text-align: center;
+}
+
+[data-theme="sheikah"] #confirm-modal .modal-content::before { display: none; }
+
+[data-theme="sheikah"] #confirm-modal .modal-actions {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 10px;
+}
+
+[data-theme="sheikah"] #confirm-modal .action-btn {
+    order: 1;
+    background: rgba(0, 0, 0, 0.9);
+    border: 1px solid var(--sk-borde);
+    border-radius: 2px;
+    color: #ffffff;
+    font-weight: 600;
+    justify-content: center;
+    box-shadow: none;
+}
+
+/* la accion principal arriba, marcada con el marco blanco y las flechas */
+[data-theme="sheikah"] #confirm-modal #confirm-modal-accept {
+    order: -1;
+    border: 2px solid var(--sk-borde);
+    box-shadow: 0 0 12px rgba(255, 255, 255, 0.35);
+    position: relative;
+}
+
+[data-theme="sheikah"] #confirm-modal #confirm-modal-accept::before,
+[data-theme="sheikah"] #confirm-modal #confirm-modal-accept::after {
+    content: "";
+    position: absolute;
+    width: 9px;
+    height: 9px;
+    border-color: #ffffff;
+    border-style: solid;
+    border-width: 0;
+}
+
+[data-theme="sheikah"] #confirm-modal #confirm-modal-accept::before {
+    top: 3px;
+    left: 3px;
+    border-top-width: 2px;
+    border-left-width: 2px;
+}
+
+[data-theme="sheikah"] #confirm-modal #confirm-modal-accept::after {
+    bottom: 3px;
+    right: 3px;
+    border-bottom-width: 2px;
+    border-right-width: 2px;
+}
+
+[data-theme="sheikah"] #confirm-modal .action-btn:hover,
+[data-theme="sheikah"] #confirm-modal .action-btn:focus-visible {
+    background: rgba(53, 182, 232, 0.22);
+    border-color: var(--accent-red);
+    box-shadow: 0 0 14px rgba(53, 182, 232, 0.55);
+}
+
+/* --- Menu lateral de los paneles: caja negra con borde blanco --- */
+[data-theme="sheikah"] .modal-menu .action-btn {
+    background: rgba(0, 0, 0, 0.85);
+    border: 1px solid var(--sk-borde);
+    border-radius: 2px;
+    color: #ffffff;
+    font-weight: 500;
+    justify-content: flex-start;
+    gap: 10px;
+    box-shadow: none;
+}
+
+[data-theme="sheikah"] .modal-menu .action-btn .material-symbols-rounded {
+    color: var(--accent-red);
+    font-size: 18px;
+}
+
+[data-theme="sheikah"] .modal-menu .action-btn:hover,
+[data-theme="sheikah"] .modal-menu .action-btn:focus-visible {
+    background: rgba(53, 182, 232, 0.2);
+    border-color: var(--accent-red);
+    border-width: 2px;
+}
+
+[data-theme="sheikah"] .modal-menu .action-btn.danger,
+[data-theme="sheikah"] .modal-menu .action-btn.danger .material-symbols-rounded { color: #ffffff; }
+
+/* --- Barra de controles inferior --- */
+[data-theme="sheikah"] .modal-content::after {
+    content: "Back (B)      Select (A)";
+    display: block;
+    margin-top: 18px;
+    padding-top: 12px;
+    border-top: 1px solid rgba(53, 182, 232, 0.25);
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: #cfe9f7;
+    text-align: right;
+}
+
+/* --- El mini reproductor es el panel de informacion del objeto --- */
+html[data-theme="sheikah"] #mini-player {
+    background: rgba(0, 0, 0, 0.88);
+    border-top: 2px solid var(--accent-red);
+    box-shadow: 0 -6px 24px rgba(0, 0, 0, 0.6);
+}
+
+[data-theme="sheikah"] .section-title {
+    color: #bfe9fb;
+    letter-spacing: 0.02em;
+}
+
+[data-theme="sheikah"] .section-title::before {
+    content: "\25C6";
+    color: var(--accent-red);
+    font-size: 12px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    [data-theme="sheikah"] .card::before,
+    [data-theme="sheikah"] .card::after,
+    [data-theme="sheikah"] .card-img-placeholder::before,
+    [data-theme="sheikah"] .card-img-placeholder::after { transition: none; }
+}
+
+@media (max-width: 899px) {
+    [data-theme="sheikah"] .sheikah-hud,
+    [data-theme="sheikah"] .sheikah-triforce { display: none; }
+    [data-theme="sheikah"] .sheikah-marco { display: none; }
+}
+

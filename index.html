@@ -9,7 +9,92 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@24,400,1,0&display=block">
+
+    <!-- Tokens del tema por defecto (oscuro): la base sobre la que todos los
+         temas trabajan. Van primero en la cascada, antes de los archivos
+         de cada tema y del layout base. -->
+    <style id="tokens-base">
+        :root {
+            --font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            --font-display: var(--font-family); /* Títulos y cifras; los temas la cambian */
+
+            /* Superficies y texto (tema oscuro por defecto) */
+            --bg-color: #000000;
+            --surface-color: #121212;
+            --surface-light: #282828;
+            --surface-hover: #333333;
+            --accent-red: #e50000;
+            --accent-pink: #e5006d; /* Rosa del icono: #e50000 -> #e5006d */
+            --color-verde: #38d23b;
+            --color-verde-claro: #8ef5a0;
+            --text-main: #ffffff;
+            --text-muted: #a0a0a0;
+            --text-on-accent: #ffffff;
+
+            /* Capas de apoyo */
+            --nav-bg: rgba(0, 0, 0, 0.82);
+            --nav-border: var(--surface-light);
+            --row-hover: rgba(255, 255, 255, 0.06);
+            --row-active: rgba(255, 255, 255, 0.1);
+            --input-border: transparent;
+
+            /* Color dinámico (se reemplaza con el color dominante de la portada) */
+            --color-enfasis: #e50000;
+            --accent-glow: rgba(229, 0, 0, 0.6);
+
+            /* Degradados: SOLO para botones. Los fondos y superficies van lisos.
+               Se definen aquí con var() para que cada tema los herede solo. */
+            --grad-accent: linear-gradient(135deg, var(--accent-red) 0%, var(--accent-pink) 100%);
+            --grad-verde: linear-gradient(135deg, var(--color-verde) 0%, var(--color-verde-claro) 100%);
+
+            /* Elevación */
+            --shadow-sm: 0 2px 6px rgba(0, 0, 0, 0.28);
+            --shadow-md: 0 6px 18px rgba(0, 0, 0, 0.38);
+            --shadow-lg: 0 16px 40px rgba(0, 0, 0, 0.55);
+
+            /* Formas y movimiento */
+            --radius-sm: 8px;
+            --radius-md: 12px;
+            --radius-lg: 18px;
+            --radius-pill: 999px;
+            --ease-bounce: cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            --ease-out: cubic-bezier(0.4, 0, 0.2, 1);
+            --dur-fast: 0.15s;
+            --dur-base: 0.25s;
+            --dur-slow: 0.4s;
+
+            /* Ritmo vertical y escala */
+            --gutter: 16px;
+            --space-section: 28px;
+            --tap-min: 40px;
+
+            /* Capas */
+            --z-header: 10;
+            --z-nav: 100;
+            --z-mini: 99;
+            --z-player: 200;
+            --z-modal: 1000;
+            --z-toast: 1200;
+
+            color-scheme: dark;
+        }
+    </style>
+    <!-- Hojas de tema separadas: cada una trae reglas con alcance `[data-theme="x"]`,
+        asi que solo la del tema activo aplica. VAN ANTES de styles.css para
+        conservar el orden de cascada que tenia el archivo unico. Conmutar tema
+        cambia el atributo `data-theme` y el CSS ya cargado se recalcula al
+        instante, sin parpadeo. -->
+    <link id="tema-css-light" rel="stylesheet" href="themes/light.css">
+    <link id="tema-css-gamecube" rel="stylesheet" href="themes/gamecube.css">
+    <link id="tema-css-sheikah" rel="stylesheet" href="themes/sheikah.css">
+    <link id="tema-css-metroid" rel="stylesheet" href="themes/metroid.css">
+    <link id="tema-css-bayonetta" rel="stylesheet" href="themes/bayonetta.css">
+    <link id="tema-css-pikmin" rel="stylesheet" href="themes/pikmin.css">
+
     <link rel="stylesheet" href="styles.css">
+    <!-- Capa para temas cargados por el usuario desde su disco: va la ultima
+         de todas para que sus reglas ganen sin pelear especificidad. -->
+    <style id="capa-tema-usuario" data-capa-tema-usuario></style>
 </head>
 <body>    <!-- Marco de la Piedra Sheikah y HUD: decorativos, solo en este tema -->
     <div class="sheikah-marco" aria-hidden="true">
@@ -151,8 +236,22 @@
                         <span>Bayonetta</span>
                     </button>
                 </li>
+                <li role="none">
+                    <button type="button" class="dropdown-item" data-value="pikmin" role="menuitemradio" aria-checked="false">
+                        <span class="icon-wrapper"><span class="theme-swatch theme-swatch-pikmin" aria-hidden="true"></span></span>
+                        <span>Pikmin</span>
+                    </button>
+                </li>
+                <li role="separator" class="theme-menu-separator" aria-hidden="true"></li>
+                <li role="none">
+                    <button type="button" class="dropdown-item" data-load-theme role="menuitem">
+                        <span class="icon-wrapper"><span class="material-symbols-rounded" aria-hidden="true">upload_file</span></span>
+                        <span>Cargar tema…</span>
+                    </button>
+                </li>
             </ul>
         </div>
+        <input type="file" id="cargar-tema-input" accept=".css,.txt,text/css,text/plain" hidden>
     </header>
 
     <main id="app-content">

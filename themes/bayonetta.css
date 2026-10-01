@@ -1,0 +1,120 @@
+/* Tema Bayonetta: gótico, místico y elegante.
+   Carmesí profundo, negro, marrón desgastado y acentos en oro y bronce.
+   El fondo es un vacío oscuro con un humo rojizo; los menus flotantes se
+   apoyan en un pergamino curtido con filetes dorados. */
+[data-theme="bayonetta"] {
+    /* Serif con remates, de aire gótico. Sin webfonts: solo fuentes del sistema. */
+    --font-family: "Cinzel", "Trajan Pro", Optima, "Palatino Linotype", Palatino,
+                   "Book Antiqua", Georgia, "Liberation Serif", "DejaVu Serif", serif;
+    --font-display: var(--font-family);
+
+    --bg-color: #0a0203;
+    --surface-color: #17090b;   /* cuero oscuro */
+    --surface-light: #2b1417;   /* marrón desgastado */
+    --surface-hover: #3b1b1f;
+    --accent-red: #8f0d17;      /* carmesí profundo */
+    --accent-pink: #c8102e;     /* carmesí encendido, para el degradado */
+    --color-verde: #a67c1a;     /* el "verde" pasa a bronce */
+    --color-verde-claro: #e8c46a;
+    --text-main: #f0e6d2;       /* crema de pergamino */
+    --text-muted: #a08b73;      /* sepia apagado */
+    --text-on-accent: #1a0a06;
+
+    --nav-bg: rgba(10, 2, 3, 0.9);
+    --nav-border: #6b5320;      /* oro viejo */
+    --row-hover: rgba(201, 162, 39, 0.1);
+    --row-active: rgba(200, 16, 46, 0.22);
+
+    --color-enfasis: #8f0d17;
+    --accent-glow: rgba(200, 16, 46, 0.55);
+
+    /* Aqui no hay verde: el acento secundario pasa a bronce */
+    --grad-verde: linear-gradient(135deg, #7a5a1c 0%, #c9a227 48%, #f0d98a 100%);
+
+    --shadow-sm: 0 2px 6px rgba(0, 0, 0, 0.5);
+    --shadow-md: 0 6px 18px rgba(0, 0, 0, 0.6);
+    --shadow-lg: 0 16px 40px rgba(0, 0, 0, 0.75);
+
+    color-scheme: dark;
+}
+
+/* Vacío oscuro con humo rojizo y un rescoldo de bronce abajo */
+[data-theme="bayonetta"] body {
+    background-image:
+        radial-gradient(1100px 540px at 50% -8%, rgba(143, 13, 23, 0.32), transparent 62%),
+        radial-gradient(760px 440px at 10% 104%, rgba(140, 109, 63, 0.16), transparent 60%),
+        linear-gradient(180deg, #140507 0%, #0a0203 55%, #050102 100%);
+}
+
+/* Tipografía gótica: se ilumina en rojo al seleccionarse */
+[data-theme="bayonetta"] .section-title,
+[data-theme="bayonetta"] .modal-content h3,
+[data-theme="bayonetta"] .song-title,
+[data-theme="bayonetta"] .game-title {
+    font-family: var(--font-display);
+    letter-spacing: 0.05em;
+}
+
+[data-theme="bayonetta"] .section-title {
+    color: #e8d9b5;
+    text-shadow: 0 0 12px rgba(200, 16, 46, 0.35);
+}
+
+/* Divisores de líneas doradas */
+[data-theme="bayonetta"] .section-header {
+    border-bottom: 1px solid rgba(201, 162, 39, 0.3);
+    padding-bottom: 10px;
+}
+
+[data-theme="bayonetta"] .nav-item.active { color: #ff5a6a; }
+[data-theme="bayonetta"] .nav-item.active .material-symbols-rounded {
+    color: #ff3347;
+    filter: drop-shadow(0 0 6px rgba(255, 51, 71, 0.85));
+}
+[data-theme="bayonetta"] .nav-item.active::after {
+    background: linear-gradient(90deg, #8f0d17, #c8102e 50%, #c9a227);
+    box-shadow: 0 0 8px rgba(200, 16, 46, 0.8);
+}
+
+[data-theme="bayonetta"] :focus-visible {
+    outline: 2px solid #c8102e;
+    box-shadow: 0 0 10px rgba(200, 16, 46, 0.6);
+}
+
+/* Menús y ajustes: pergamino curtido con escritura arcana de fondo */
+[data-theme="bayonetta"] .modal-content {
+    background-color: #241413;
+    background-image:
+        radial-gradient(120% 90% at 50% 0%, rgba(201, 162, 39, 0.12), transparent 62%),
+        repeating-linear-gradient(0deg, rgba(0, 0, 0, 0.13) 0 2px, transparent 2px 5px),
+        linear-gradient(160deg, #2f1b15 0%, #1e100e 55%, #150b0a 100%);
+    border: 1px solid rgba(201, 162, 39, 0.45);
+    box-shadow: var(--shadow-lg), inset 0 0 44px rgba(0, 0, 0, 0.62);
+}
+
+[data-theme="bayonetta"] .modal-content h3 {
+    color: #e8c46a;
+    text-shadow: 0 0 10px rgba(200, 16, 46, 0.4);
+}
+
+/* Tarjetas con canto dorado y brillo al enfocarse */
+[data-theme="bayonetta"] .card-img-placeholder {
+    border: 1px solid rgba(201, 162, 39, 0.32);
+    box-shadow: var(--shadow-sm), inset 0 0 14px rgba(143, 13, 23, 0.18);
+    border-radius: 10px;
+}
+
+[data-theme="bayonetta"] .card:hover .card-img-placeholder,
+[data-theme="bayonetta"] .card:focus-visible .card-img-placeholder {
+    box-shadow: 0 0 0 1px rgba(201, 162, 39, 0.62), 0 0 16px rgba(143, 13, 23, 0.5);
+}
+
+/* Scrollbar de bronce */
+[data-theme="bayonetta"] ::-webkit-scrollbar { width: 10px; height: 10px; }
+[data-theme="bayonetta"] ::-webkit-scrollbar-track { background: rgba(0, 0, 0, 0.4); }
+[data-theme="bayonetta"] ::-webkit-scrollbar-thumb {
+    background: linear-gradient(180deg, #8c6d3f, #4a3418);
+    border-radius: 5px;
+}
+[data-theme="bayonetta"] ::-webkit-scrollbar-thumb:hover { background: #c9a227; }
+
